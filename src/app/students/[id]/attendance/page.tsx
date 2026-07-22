@@ -1,5 +1,5 @@
 "use client";
-
+export function generateStaticParams() { return []; }
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ATTENDANCE_STATUS_LABELS, type AttendanceDTO, type AttendanceStatus } from "@/domain/use-cases/repositories";

@@ -1,5 +1,5 @@
 "use client";
-
+export function generateStaticParams() { return []; }
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { GradeAnalyzer } from "@/domain/analysis/grade-analyzer";
