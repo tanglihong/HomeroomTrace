@@ -1,0 +1,49 @@
+# 班主任工作留痕 PWA
+
+纯本地离线 PWA：学生名册、德育/工作留痕（含照片与录音）、成绩导入与本地学情分析、考勤奖惩、PDF 台账导出与备份。
+
+## 环境要求
+
+- Node.js 18+
+- 现代浏览器（Chrome / Safari / Edge）
+- 录音功能需 HTTPS 或 localhost
+
+## 安装与运行
+
+```bash
+cd PWA
+npm install
+npm run dev
+```
+
+浏览器打开 http://localhost:3000
+
+## 构建与 PWA
+
+```bash
+npm run build
+npm start
+```
+
+生产构建会自动生成 Service Worker（Workbox），支持离线缓存与「添加到主屏幕」。
+
+## 功能入口
+
+| Tab | 内容 |
+|-----|------|
+| 工作台 | 10 种留痕快捷新建、最近记录 |
+| 学生 | 名册 CSV 导入、标签评价、考勤、奖惩、关联留痕 |
+| 成绩学情 | CSV 导入（校验名册学号）、本地学情简报 |
+| 我的 | 班级信息、PDF 导出（日期范围/脱敏）、备份导出与还原 |
+
+## 测试
+
+```bash
+npm test
+```
+
+## 架构
+
+`features` → `domain` → `data`；Dexie.js 持久化；Next.js App Router；`@ducanh2912/next-pwa` + Workbox 离线缓存。
+
+对标 iOS 版见 `../ios/README.md`。
