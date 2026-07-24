@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ALL_WORK_RECORD_TYPES, RecordTypeConfig, type WorkRecordType } from "@/domain/models/work-record-type";
-import type { AttachmentDraft, RecordTemplateDTO, StudentDTO, WorkRecordDraft } from "@/domain/use-cases/repositories";
+import type { AttachmentDraft, RecordTemplateDTO, WorkRecordDraft } from "@/domain/use-cases/repositories";
+import { AttachmentPreview } from "@/features/records/attachment-preview";
 import { IconCamera, IconMic } from "@/features/common/icons";
 import {
   IOSActionRow,
@@ -25,7 +26,7 @@ interface RecordEditorProps {
 
 export function RecordEditor({ mode, recordId, initialType = "classDiary" }: RecordEditorProps) {
   const container = useAppContainer();
-  const { students: cachedStudents, refreshStudents, refreshRecords } = useDataStore();
+  const { students: cachedStudents, upsertRecord } = useDataStore();
   const toast = useToast();
   const router = useRouter();
   const [type, setType] = useState<WorkRecordType>(initialType);
@@ -36,22 +37,15 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
   const [followUp, setFollowUp] = useState("");
   const [studentIds, setStudentIds] = useState<string[]>([]);
   const [attachments, setAttachments] = useState<AttachmentDraft[]>([]);
-  const [students, setStudents] = useState<StudentDTO[]>([]);
   const [templates, setTemplates] = useState<RecordTemplateDTO[]>([]);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const [recording, setRecording] = useState(false);
 
   const config = RecordTypeConfig.configuration(type);
-
-  useEffect(() => {
-    if (cachedStudents) {
-      setStudents(cachedStudents);
-      return;
-    }
-    void refreshStudents().then(setStudents).catch(() => {});
-  }, [cachedStudents, refreshStudents]);
+  const students = cachedStudents ?? [];
 
   useEffect(() => {
     void container.templates.list(type).then(setTemplates).catch(() => {});
@@ -91,22 +85,27 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
   });
 
   const save = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       const draft = buildDraft();
+      let id: string;
       if (mode === "edit" && recordId) {
         await container.records.update(recordId, draft);
-        await refreshRecords(true);
-        router.push(`/records/${recordId}`);
+        id = recordId;
       } else {
-        const id = await container.records.add(draft);
-        await refreshRecords(true);
-        router.push(`/records/${id}`);
+        id = await container.records.add(draft);
       }
+      const saved = await container.records.find(id);
+      if (saved) upsertRecord(saved);
+      toast.show("保存成功");
+      router.replace(`/records/detail?id=${id}`);
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "保存失败", true);
     } finally {
       setSaving(false);
+      savingRef.current = false;
     }
   };
 
@@ -159,11 +158,15 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
     setStudentIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
+  const removeAttachment = (index: number) => {
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <>
       <IOSNavBar
         title={mode === "create" ? "新建留痕" : "编辑留痕"}
-        backHref={recordId ? `/records/${recordId}` : "/workbench"}
+        backHref={recordId ? `/records/detail?id=${recordId}` : "/workbench"}
         right={
           <IOSNavButton onClick={save} disabled={saving}>
             {saving ? "保存中" : "保存"}
@@ -263,6 +266,23 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
             <IOSActionRow icon={<IconMic size={20} />} onClick={startRecording}>
               开始录音
             </IOSActionRow>
+          )}
+          {attachments.length > 0 && (
+            <div className="attachment-grid">
+              {attachments.map((attachment, index) => (
+                <div key={`${attachment.relativePath}-${index}`} className="attachment-thumb">
+                  <AttachmentPreview path={attachment.relativePath} kind={attachment.kind} compact />
+                  <button
+                    type="button"
+                    className="attachment-thumb-remove"
+                    aria-label="移除附件"
+                    onClick={() => removeAttachment(index)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </IOSFormSection>
       </div>

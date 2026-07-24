@@ -228,6 +228,10 @@ export class DexieWorkRecordRepository implements WorkRecordRepository {
 
     if (filtered.length === 0) return [];
 
+    if (filter.includeAttachments === false) {
+      return filtered.map((e) => this.mapDTOWithAttachments(e, []));
+    }
+
     const recordIds = filtered.map((e) => e.id);
     const allAttachments = await getDatabase().attachments.where("recordId").anyOf(recordIds).toArray();
     const attachmentsByRecord = new Map<string, typeof allAttachments>();
@@ -384,8 +388,8 @@ export class DexieBehaviorRepository implements BehaviorRepository {
   }
 
   async totalPoints(studentId: string): Promise<number> {
-    const list = await this.list(studentId);
-    return list.reduce((sum, item) => sum + item.delta, 0);
+    const rows = await getDatabase().behaviorPoints.where("studentId").equals(studentId).toArray();
+    return rows.reduce((sum, item) => sum + item.delta, 0);
   }
 }
 

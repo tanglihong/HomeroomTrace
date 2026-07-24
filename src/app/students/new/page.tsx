@@ -6,9 +6,11 @@ import { IOSActionRow, IOSButton, IOSFormRow, IOSFormSection } from "@/features/
 import { IOSNavBar, IOSNavButton } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
 import { useAppContainer } from "@/lib/app-container";
+import { useDataStore } from "@/lib/data-store";
 
 export default function StudentEditorPage() {
   const container = useAppContainer();
+  const { refreshStudents } = useDataStore();
   const toast = useToast();
   const router = useRouter();
   const [name, setName] = useState("");
@@ -30,6 +32,7 @@ export default function StudentEditorPage() {
         parentPhone || undefined,
         note || undefined,
       );
+      await refreshStudents(true);
       router.push(`/students/${id}`);
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "保存失败", true);

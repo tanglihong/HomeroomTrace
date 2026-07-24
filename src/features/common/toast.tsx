@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 interface ToastState {
   message: string;
@@ -21,8 +21,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => setToast(null), 2000);
   }, []);
 
+  const value = useMemo(() => ({ show }), [show]);
+
   return (
-    <ToastContext.Provider value={{ show }}>
+    <ToastContext.Provider value={value}>
       {children}
       {toast && (
         <div className={`toast-banner ${toast.error ? "toast-error" : ""}`} role="status">

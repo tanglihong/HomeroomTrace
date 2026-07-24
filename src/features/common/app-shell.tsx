@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { GradesView } from "@/features/views/grades-view";
 import { MineView } from "@/features/views/mine-view";
 import { StudentsView } from "@/features/views/students-view";
@@ -23,23 +23,16 @@ function ShellInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isTabRoot = TAB_ROOTS.includes(pathname as (typeof TAB_ROOTS)[number]);
   const showTab = isTabRoot;
-  const [mountedTabs, setMountedTabs] = useState<Set<string>>(new Set());
+  const mainRef = useRef<HTMLElement>(null);
+  const prevPathRef = useRef(pathname);
 
   useEffect(() => {
-    if (ready) {
-      setMountedTabs(new Set(TAB_ROOTS));
-    }
-  }, [ready]);
-
-  useEffect(() => {
-    if (isTabRoot) {
-      setMountedTabs((prev) => {
-        if (prev.has(pathname)) return prev;
-        const next = new Set(prev);
-        next.add(pathname);
-        return next;
-      });
-    }
+    if (!isTabRoot || prevPathRef.current === pathname) return;
+    prevPathRef.current = pathname;
+    requestAnimationFrame(() => {
+      const panel = mainRef.current?.querySelector<HTMLElement>(".tab-panel:not([hidden])");
+      panel?.scrollTo(0, 0);
+    });
   }, [pathname, isTabRoot]);
 
   if (!ready) {
@@ -48,9 +41,8 @@ function ShellInner({ children }: { children: ReactNode }) {
 
   return (
     <div className="app-shell">
-      <main className={`app-main ${showTab ? "" : "no-tab"}`}>
+      <main ref={mainRef} className={`app-main ${showTab ? "" : "no-tab"}`}>
         {TAB_ROOTS.map((tab) => {
-          if (!mountedTabs.has(tab)) return null;
           const View = TAB_VIEWS[tab];
           const active = pathname === tab;
           return (

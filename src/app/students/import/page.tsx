@@ -6,9 +6,11 @@ import { StudentCSVParser } from "@/domain/import/student-csv-parser";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
 import { useAppContainer } from "@/lib/app-container";
+import { useDataStore } from "@/lib/data-store";
 
 export default function StudentImportPage() {
   const container = useAppContainer();
+  const { refreshStudents } = useDataStore();
   const toast = useToast();
   const router = useRouter();
   const [csv, setCsv] = useState("");
@@ -25,7 +27,10 @@ export default function StudentImportPage() {
       const res = await container.students.importBatch(classId, rows);
       setResult([...errors, ...res.errors, `成功导入 ${res.imported} 人，跳过 ${res.skipped} 人`]);
       toast.show(`导入完成：${res.imported} 人`);
-      if (res.imported > 0) router.push("/students");
+      if (res.imported > 0) {
+        await refreshStudents(true);
+        router.push("/students");
+      }
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "导入失败", true);
     }

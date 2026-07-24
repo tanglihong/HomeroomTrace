@@ -1,36 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import type { StudentDTO } from "@/domain/use-cases/repositories";
+import { memo, useMemo, useState } from "react";
 import { IOSEmpty } from "@/features/common/ios-list";
 import { IOSNavBar, IOSNavLink } from "@/features/common/ios-nav-bar";
-import { useToast } from "@/features/common/toast";
 import { useDataStore } from "@/lib/data-store";
 
-export function StudentsView() {
-  const { students, refreshStudents } = useDataStore();
-  const toast = useToast();
-  const [list, setList] = useState<StudentDTO[]>([]);
+export const StudentsView = memo(function StudentsView() {
+  const { students } = useDataStore();
   const [keyword, setKeyword] = useState("");
 
-  useEffect(() => {
-    if (students) {
-      setList(students);
-      return;
-    }
-    refreshStudents()
-      .then(setList)
-      .catch((e) => toast.show(e instanceof Error ? e.message : "加载失败", true));
-  }, [students, refreshStudents, toast]);
-
-  const filtered = list.filter(
-    (s) =>
-      !keyword.trim() ||
-      s.name.includes(keyword) ||
-      s.studentNo.includes(keyword) ||
-      (s.parentName?.includes(keyword) ?? false),
-  );
+  const filtered = useMemo(() => {
+    const list = students ?? [];
+    if (!keyword.trim()) return list;
+    return list.filter(
+      (s) =>
+        s.name.includes(keyword) ||
+        s.studentNo.includes(keyword) ||
+        (s.parentName?.includes(keyword) ?? false),
+    );
+  }, [students, keyword]);
 
   return (
     <>
@@ -48,7 +37,7 @@ export function StudentsView() {
         <input type="search" placeholder="搜索姓名/学号" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
       </div>
       <div className="page-content">
-        {!students && filtered.length === 0 ? (
+        {!students ? (
           <IOSEmpty title="加载中…" />
         ) : filtered.length === 0 ? (
           <IOSEmpty title="暂无学生" description="添加或导入名册" />
@@ -72,4 +61,4 @@ export function StudentsView() {
       </div>
     </>
   );
-}
+});

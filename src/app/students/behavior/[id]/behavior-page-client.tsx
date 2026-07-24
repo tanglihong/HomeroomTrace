@@ -20,8 +20,9 @@ export default function BehaviorPageClient() {
   const [reason, setReason] = useState("");
 
   const reload = useCallback(async () => {
-    setList(await container.behavior.list(id));
-    setTotal(await container.behavior.totalPoints(id));
+    const items = await container.behavior.list(id);
+    setList(items);
+    setTotal(items.reduce((sum, item) => sum + item.delta, 0));
   }, [container, id]);
 
   useEffect(() => {

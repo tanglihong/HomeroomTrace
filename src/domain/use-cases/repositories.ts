@@ -17,6 +17,8 @@ export interface WorkRecordFilter {
   endDate?: Date;
   studentId?: string;
   keyword?: string;
+  /** 列表场景可跳过附件查询以提升性能 */
+  includeAttachments?: boolean;
 }
 
 export interface StudentDTO {

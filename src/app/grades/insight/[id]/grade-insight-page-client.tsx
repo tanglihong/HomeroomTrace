@@ -8,10 +8,12 @@ import { IOSSection } from "@/features/common/ios-list";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
 import { useAppContainer } from "@/lib/app-container";
+import { useDataStore } from "@/lib/data-store";
 
 export default function GradeInsightPageClient() {
   const { id: sheetId } = useParams<{ id: string }>();
   const container = useAppContainer();
+  const { gradeSheets } = useDataStore();
   const toast = useToast();
   const [sheet, setSheet] = useState<GradeSheetDTO | null>(null);
   const [report, setReport] = useState(GradeAnalyzer.analyze([], []));
@@ -19,17 +21,20 @@ export default function GradeInsightPageClient() {
   const reload = useCallback(async () => {
     try {
       const classId = container.requireClassId();
-      const sheets = await container.grades.listSheets(classId);
-      const current = sheets.find((s) => s.id === sheetId) ?? null;
-      setSheet(current);
-      if (!current) return;
+      const current = gradeSheets?.find((s) => s.id === sheetId) ?? null;
+      const resolved =
+        current ??
+        (await container.grades.listSheets(classId)).find((s) => s.id === sheetId) ??
+        null;
+      setSheet(resolved);
+      if (!resolved) return;
       const rows = await container.grades.entries(sheetId);
       const previous = await container.grades.previousTotals(classId, sheetId);
-      setReport(GradeAnalyzer.analyze(rows, current.subjectNames, previous));
+      setReport(GradeAnalyzer.analyze(rows, resolved.subjectNames, previous));
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "加载失败", true);
     }
-  }, [container, sheetId, toast]);
+  }, [container, gradeSheets, sheetId, toast]);
 
   useEffect(() => {
     reload();

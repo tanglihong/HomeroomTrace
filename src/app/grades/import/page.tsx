@@ -7,10 +7,12 @@ import { GradeCSVParser } from "@/domain/import/grade-csv-parser";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
 import { useAppContainer } from "@/lib/app-container";
+import { useDataStore } from "@/lib/data-store";
 import { toDateInputValue } from "@/lib/format";
 
 export default function GradeImportPage() {
   const container = useAppContainer();
+  const { refreshGradeSheets } = useDataStore();
   const toast = useToast();
   const router = useRouter();
   const [csv, setCsv] = useState("");
@@ -33,6 +35,7 @@ export default function GradeImportPage() {
       const result = await container.grades.importSheet(classId, examName, new Date(`${examDate}T12:00:00`), subjects, rows);
       setWarnings([...errors, ...result.warnings, `成功导入 ${result.importedCount} 人`]);
       toast.show("导入完成");
+      await refreshGradeSheets(true);
       router.push(`/grades/insight/${result.sheetId}`);
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "导入失败", true);

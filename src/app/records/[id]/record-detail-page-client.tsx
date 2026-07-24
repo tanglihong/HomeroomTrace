@@ -2,49 +2,25 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { RecordTypeConfig } from "@/domain/models/work-record-type";
 import type { StudentDTO, WorkRecordDTO } from "@/domain/use-cases/repositories";
+import { AttachmentPreview } from "@/features/records/attachment-preview";
 import { IOSButton } from "@/features/common/ios-form";
 import { IOSSection } from "@/features/common/ios-list";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
+import { useDataStore } from "@/lib/data-store";
 import { useAppContainer } from "@/lib/app-container";
 import { formatRecordDate } from "@/lib/format";
 
-function AttachmentPreview({ path, kind }: { path: string; kind: "photo" | "audio" }) {
-  const container = useAppContainer();
-  const [url, setUrl] = useState<string>();
-
-  useEffect(() => {
-    let objectUrl: string | undefined;
-    (async () => {
-      try {
-        objectUrl = await container.mediaStore.url(path);
-        setUrl(objectUrl);
-      } catch {
-        /* ignore */
-      }
-    })();
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl);
-    };
-  }, [container, path]);
-
-  if (!url) return <p className="record-subtitle">加载附件…</p>;
-  if (kind === "photo") {
-    return (
-      <div className="media-preview">
-        <img src={url} alt="照片附件" />
-      </div>
-    );
-  }
-  return <audio className="audio-player" controls src={url} />;
+interface RecordDetailPageClientProps {
+  recordId: string;
 }
 
-export default function RecordDetailPageClient() {
-  const { id } = useParams<{ id: string }>();
+export default function RecordDetailPageClient({ recordId }: RecordDetailPageClientProps) {
   const container = useAppContainer();
+  const { students: cachedStudents, removeRecord } = useDataStore();
   const toast = useToast();
   const router = useRouter();
   const [record, setRecord] = useState<WorkRecordDTO | null>(null);
@@ -52,17 +28,23 @@ export default function RecordDetailPageClient() {
 
   const reload = useCallback(async () => {
     try {
-      const r = await container.records.find(id);
+      const r = await container.records.find(recordId);
       setRecord(r ?? null);
-      if (r) {
-        const classId = container.requireClassId();
-        const all = await container.students.list(classId);
-        setStudents(all.filter((s) => r.studentIds.includes(s.id)));
+      if (!r) {
+        setStudents([]);
+        return;
       }
+      if (cachedStudents) {
+        setStudents(cachedStudents.filter((s) => r.studentIds.includes(s.id)));
+        return;
+      }
+      const classId = container.requireClassId();
+      const all = await container.students.list(classId);
+      setStudents(all.filter((s) => r.studentIds.includes(s.id)));
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "加载失败", true);
     }
-  }, [container, id, toast]);
+  }, [container, recordId, cachedStudents, toast]);
 
   useEffect(() => {
     reload();
@@ -71,7 +53,8 @@ export default function RecordDetailPageClient() {
   const onDelete = async () => {
     if (!confirm("确定删除这条留痕？")) return;
     try {
-      await container.records.delete(id);
+      await container.records.delete(recordId);
+      removeRecord(recordId);
       router.push("/records");
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "删除失败", true);
@@ -94,7 +77,7 @@ export default function RecordDetailPageClient() {
       <IOSNavBar
         title="留痕详情"
         backHref="/records"
-        right={<Link href={`/records/edit/${id}`}>编辑</Link>}
+        right={<Link href={`/records/edit?id=${recordId}`}>编辑</Link>}
       />
       <div className="page-content">
         <IOSSection>
