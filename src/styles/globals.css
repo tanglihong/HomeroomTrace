@@ -636,7 +636,7 @@ textarea {
   min-width: 0;
 }
 
-.ios-form-row-control input,
+.ios-form-row-control input:not([type="date"]):not([type="time"]):not([type="datetime-local"]),
 .ios-form-row-control select,
 .ios-form-row-control textarea {
   width: 100%;
@@ -682,8 +682,70 @@ textarea {
   outline: none;
 }
 
-.ios-form-row-control input[type="date"] {
+.ios-form-row-control input[type="date"],
+.ios-form-row-control input[type="time"],
+.ios-form-row-control input[type="datetime-local"] {
+  width: 100%;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 17px;
   color: var(--ios-accent);
+  text-align: right;
+  appearance: auto;
+  -webkit-appearance: auto;
+  cursor: pointer;
+}
+
+.ios-date-field {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ios-date-input {
+  width: 100%;
+  min-height: 36px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  color: var(--ios-accent);
+  text-align: right;
+  appearance: auto;
+  -webkit-appearance: auto;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+.ios-date-input.is-empty {
+  color: transparent;
+}
+
+.ios-date-input.is-empty::-webkit-datetime-edit,
+.ios-date-input.is-empty::-webkit-datetime-edit-fields-wrapper,
+.ios-date-input.is-empty::-webkit-datetime-edit-text,
+.ios-date-input.is-empty::-webkit-datetime-edit-month-field,
+.ios-date-input.is-empty::-webkit-datetime-edit-day-field,
+.ios-date-input.is-empty::-webkit-datetime-edit-year-field {
+  color: transparent;
+}
+
+.ios-date-placeholder {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ios-secondary);
+  font-size: 17px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .ios-form-row-control input:disabled,
@@ -1132,8 +1194,7 @@ label.ios-action-row .ios-hidden-input {
   padding: 8px var(--page-padding) 4px;
 }
 
-.filter-bar input,
-.filter-bar select {
+.filter-bar input {
   flex: 1;
   min-width: 120px;
   padding: 10px 14px;
@@ -1142,6 +1203,130 @@ label.ios-action-row .ios-hidden-input {
   background: var(--ios-card);
   box-shadow: var(--shadow-card);
   font-size: 15px;
+  color: var(--ios-label);
+}
+
+.filter-bar input::placeholder {
+  color: var(--ios-secondary);
+}
+
+.filter-bar .ios-select-wrap {
+  flex: 1;
+  min-width: 120px;
+}
+
+.filter-options {
+  margin: 0 var(--page-padding) 10px;
+  padding: 10px 14px;
+  background: var(--ios-card);
+  border-radius: var(--ios-radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* iOS 风格下拉 */
+.ios-select-wrap {
+  position: relative;
+  display: block;
+}
+
+.ios-select {
+  width: 100%;
+  padding: 10px 36px 10px 14px;
+  border: none;
+  border-radius: var(--ios-radius-lg);
+  background: var(--ios-card);
+  box-shadow: var(--shadow-card);
+  font-size: 15px;
+  color: var(--ios-label);
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.ios-select:focus {
+  outline: none;
+  box-shadow: var(--shadow-card), 0 0 0 2px var(--ios-accent-tint-medium);
+}
+
+.ios-select-wrap::after {
+  content: "";
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  margin-top: -1px;
+  border-right: 2px solid var(--ios-accent);
+  border-bottom: 2px solid var(--ios-accent);
+  transform: translateY(-60%) rotate(45deg);
+  pointer-events: none;
+  opacity: 0.75;
+}
+
+/* iOS 风格复选框 */
+.ios-filter-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ios-filter-check-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ios-filter-check-box {
+  position: relative;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1px solid var(--ios-separator-opaque);
+  background: var(--ios-card);
+  box-shadow: 0 1px 2px rgba(181, 131, 141, 0.06);
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+}
+
+.ios-filter-check-input:checked + .ios-filter-check-box {
+  background: var(--ios-accent);
+  border-color: var(--ios-accent);
+}
+
+.ios-filter-check-input:checked + .ios-filter-check-box::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid #fff;
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.ios-filter-check-input:focus-visible + .ios-filter-check-box {
+  box-shadow: 0 0 0 2px var(--ios-accent-tint-medium);
+}
+
+.ios-filter-check:active .ios-filter-check-box {
+  transform: scale(0.94);
+}
+
+.ios-filter-check-label {
+  font-size: 15px;
+  line-height: 18px;
+  color: var(--ios-label);
+  letter-spacing: -0.01em;
 }
 
 /* ── Tags ── */

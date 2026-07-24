@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ALL_WORK_RECORD_TYPES, RecordTypeConfig, type WorkRecordType } from "@/domain/models/work-record-type";
 import type { RecordTemplateDTO } from "@/domain/use-cases/repositories";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
+import { IOSSelect } from "@/features/common/ios-filter-controls";
 import { useToast } from "@/features/common/toast";
 import { useIOSAlert } from "@/features/common/ios-alert";
 import { useAppContainer } from "@/lib/app-container";
@@ -62,14 +63,14 @@ export default function RecordTemplatesPage() {
     <>
       <IOSNavBar title="留痕模板" backHref="/workbench" />
       <div className="filter-bar">
-        <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as WorkRecordType | "")}>
+        <IOSSelect value={typeFilter} onChange={(e) => setTypeFilter(e.target.value as WorkRecordType | "")}>
           <option value="">全部类型</option>
           {ALL_WORK_RECORD_TYPES.map((t) => (
             <option key={t} value={t}>
               {RecordTypeConfig.configuration(t).displayName}
             </option>
           ))}
-        </select>
+        </IOSSelect>
       </div>
       <div className="page-content template-market-page">
         <p className="template-market-hint">

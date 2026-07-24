@@ -78,6 +78,27 @@ export function IOSFormRow({
   );
 }
 
+/** 日期选择：保留原生 picker，空值时显示占位提示（兼容 iOS） */
+export function IOSDateInput({
+  placeholder = "选择日期",
+  className = "",
+  value,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, "type"> & { placeholder?: string }) {
+  const hasValue = Boolean(value);
+  return (
+    <div className={`ios-date-field ${className}`.trim()}>
+      {!hasValue && <span className="ios-date-placeholder">{placeholder}</span>}
+      <input
+        type="date"
+        className={`ios-date-input ${hasValue ? "has-value" : "is-empty"}`}
+        value={value ?? ""}
+        {...rest}
+      />
+    </div>
+  );
+}
+
 /** 附件/操作行列表 */
 export function IOSActionGroup({ children }: { children: ReactNode }) {
   return <div className="ios-action-group">{children}</div>;

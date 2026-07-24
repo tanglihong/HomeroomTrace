@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { ALL_WORK_RECORD_TYPES, RecordTypeConfig } from "@/domain/models/work-record-type";
 import type { WorkRecordDTO, WorkRecordFilter } from "@/domain/use-cases/repositories";
 import { IOSEmpty } from "@/features/common/ios-list";
+import { IOSCheckbox, IOSSelect } from "@/features/common/ios-filter-controls";
 import { IOSNavBar, IOSNavLink } from "@/features/common/ios-nav-bar";
 import { RecordListGroup } from "@/features/records/record-list-group";
 import { useToast } from "@/features/common/toast";
@@ -83,7 +84,7 @@ function RecordListInner() {
     <>
       <IOSNavBar title="全部留痕" backHref="/workbench" right={<IOSNavLink href="/records/new">新建</IOSNavLink>} />
       <div className="filter-bar">
-        <select
+        <IOSSelect
           value={filter.type ?? ""}
           onChange={(e) => setFilter((f) => ({ ...f, type: (e.target.value || undefined) as WorkRecordFilter["type"] }))}
         >
@@ -93,13 +94,12 @@ function RecordListInner() {
               {RecordTypeConfig.configuration(t).displayName}
             </option>
           ))}
-        </select>
+        </IOSSelect>
         <input type="search" placeholder="搜索标题/内容" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
       </div>
-      <label className="ios-row" style={{ margin: "0 16px 8px", display: "flex", gap: 8, alignItems: "center" }}>
-        <input type="checkbox" checked={hasAttachmentOnly} onChange={(e) => setHasAttachmentOnly(e.target.checked)} />
-        仅有附件
-      </label>
+      <div className="filter-options">
+        <IOSCheckbox label="仅有附件" checked={hasAttachmentOnly} onChange={(e) => setHasAttachmentOnly(e.target.checked)} />
+      </div>
       <div className="page-content">
         {!cachedRecords && records.length === 0 ? (
           <IOSEmpty title="加载中…" />

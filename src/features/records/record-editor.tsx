@@ -22,6 +22,8 @@ import {
 
   IOSActionRow,
 
+  IOSDateInput,
+
   IOSFileButton,
 
   IOSFormRow,
@@ -666,7 +668,7 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
           <IOSFormRow label="日期">
 
-            <input type="date" value={happenedAt} onChange={(e) => setHappenedAt(e.target.value)} />
+            <IOSDateInput value={happenedAt} onChange={(e) => setHappenedAt(e.target.value)} />
 
           </IOSFormRow>
 
@@ -818,7 +820,7 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
               <IOSFormRow label="跟进截止">
 
-                <input type="date" value={followUpDueAt} onChange={(e) => setFollowUpDueAt(e.target.value)} />
+                <IOSDateInput value={followUpDueAt} onChange={(e) => setFollowUpDueAt(e.target.value)} />
 
               </IOSFormRow>
 
