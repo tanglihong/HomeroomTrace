@@ -1,5 +1,5 @@
 "use client";
-export function generateStaticParams() { return []; }
+
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { GradeAnalyzer } from "@/domain/analysis/grade-analyzer";
@@ -9,8 +9,8 @@ import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
 import { useAppContainer } from "@/lib/app-container";
 
-export default function GradeInsightPage() {
-  const { sheetId } = useParams<{ sheetId: string }>();
+export default function GradeInsightPageClient() {
+  const { id: sheetId } = useParams<{ id: string }>();
   const container = useAppContainer();
   const toast = useToast();
   const [sheet, setSheet] = useState<GradeSheetDTO | null>(null);

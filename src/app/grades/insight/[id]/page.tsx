@@ -1,10 +1,10 @@
-import StudentDetailPageClient from "./student-detail-page-client";
+import GradeInsightPageClient from "./grade-insight-page-client";
 import { dynamicRouteStaticParams } from "@/lib/dynamic-route-static-params";
 
 export function generateStaticParams() {
   return dynamicRouteStaticParams();
 }
 
-export default function StudentDetailPage() {
-  return <StudentDetailPageClient />;
+export default function GradeInsightPage() {
+  return <GradeInsightPageClient />;
 }

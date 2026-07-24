@@ -1,5 +1,5 @@
 "use client";
-export function generateStaticParams() { return []; }
+
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import type { BehaviorPointDTO } from "@/domain/use-cases/repositories";
@@ -9,7 +9,7 @@ import { useToast } from "@/features/common/toast";
 import { useAppContainer } from "@/lib/app-container";
 import { formatRecordDate, toDateInputValue } from "@/lib/format";
 
-export default function BehaviorPage() {
+export default function BehaviorPageClient() {
   const { id } = useParams<{ id: string }>();
   const container = useAppContainer();
   const toast = useToast();

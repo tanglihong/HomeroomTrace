@@ -36,7 +36,7 @@ export function GradesView() {
         ) : (
           <div className="ios-group">
             {sheets.map((s) => (
-              <Link key={s.id} href={`/grades/${s.id}/insight`} prefetch className="ios-row has-chevron record-row">
+              <Link key={s.id} href={`/grades/insight/${s.id}`} prefetch className="ios-row has-chevron record-row">
                 <div className="record-row-main">
                   <span className="record-type-icon" style={{ background: "rgba(52,199,89,0.12)", color: "#34C759" }}>
                     <IconChart size={20} />

@@ -33,7 +33,7 @@ export default function GradeImportPage() {
       const result = await container.grades.importSheet(classId, examName, new Date(`${examDate}T12:00:00`), subjects, rows);
       setWarnings([...errors, ...result.warnings, `成功导入 ${result.importedCount} 人`]);
       toast.show("导入完成");
-      router.push(`/grades/${result.sheetId}/insight`);
+      router.push(`/grades/insight/${result.sheetId}`);
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "导入失败", true);
     }
