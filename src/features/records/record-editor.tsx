@@ -17,6 +17,7 @@ import { useToast } from "@/features/common/toast";
 import { useDataStore } from "@/lib/data-store";
 import { useAppContainer } from "@/lib/app-container";
 import { parseDateInput, toDateInputValue } from "@/lib/format";
+import { pickAudioRecordingFormat } from "@/lib/audio-recording";
 
 interface RecordEditorProps {
   mode: "create" | "edit";
@@ -42,6 +43,7 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
   const savingRef = useRef(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const recordingFormatRef = useRef(pickAudioRecordingFormat());
   const [recording, setRecording] = useState(false);
 
   const config = RecordTypeConfig.configuration(type);
@@ -124,17 +126,33 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
 
   const startRecording = async () => {
     try {
+      let format = pickAudioRecordingFormat();
+      recordingFormatRef.current = format;
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(stream, { mimeType: format.mimeType });
+      } catch {
+        recorder = new MediaRecorder(stream);
+        format = {
+          mimeType: recorder.mimeType || format.mimeType,
+          extension: format.extension,
+        };
+        recordingFormatRef.current = format;
+      }
       audioChunksRef.current = [];
       recorder.ondataavailable = (ev) => {
         if (ev.data.size > 0) audioChunksRef.current.push(ev.data);
       };
       recorder.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        if (audioChunksRef.current.length === 0) {
+          toast.show("录音太短，请重试", true);
+          return;
+        }
+        const blob = new Blob(audioChunksRef.current, { type: format.mimeType });
         try {
-          const path = await container.mediaStore.save(blob, "records", "webm");
+          const path = await container.mediaStore.save(blob, "records", format.extension);
           setAttachments((prev) => [...prev, { kind: "audio", relativePath: path }]);
           toast.show("录音已添加");
         } catch {
@@ -142,7 +160,7 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
         }
       };
       mediaRecorderRef.current = recorder;
-      recorder.start();
+      recorder.start(250);
       setRecording(true);
     } catch {
       toast.show("无法访问麦克风", true);
@@ -150,7 +168,11 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary" }: Rec
   };
 
   const stopRecording = () => {
-    mediaRecorderRef.current?.stop();
+    const recorder = mediaRecorderRef.current;
+    if (recorder && recorder.state === "recording") {
+      recorder.requestData();
+      recorder.stop();
+    }
     setRecording(false);
   };
 

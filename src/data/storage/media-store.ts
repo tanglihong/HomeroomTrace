@@ -21,8 +21,10 @@ export class IndexedDBMediaStore implements MediaStore {
   }
 
   async url(relativePath: string): Promise<string> {
-    const blob = await this.get(relativePath);
-    if (!blob) throw new Error("媒体文件不存在");
+    const row = await getDatabase().mediaFiles.get(relativePath);
+    if (!row) throw new Error("媒体文件不存在");
+    const mimeType = row.blob.type || row.mimeType || "application/octet-stream";
+    const blob = row.blob.type ? row.blob : new Blob([row.blob], { type: mimeType });
     return URL.createObjectURL(blob);
   }
 

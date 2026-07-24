@@ -15,10 +15,14 @@ interface AttachmentPreviewProps {
 export function AttachmentPreview({ path, kind, compact }: AttachmentPreviewProps) {
   const container = useAppContainer();
   const [url, setUrl] = useState<string>();
+  const [loadError, setLoadError] = useState(false);
+  const [playError, setPlayError] = useState(false);
 
   useEffect(() => {
     let objectUrl: string | undefined;
     let cancelled = false;
+    setLoadError(false);
+    setPlayError(false);
 
     const cached = urlCache.get(path);
     if (cached) {
@@ -33,7 +37,7 @@ export function AttachmentPreview({ path, kind, compact }: AttachmentPreviewProp
         urlCache.set(path, objectUrl);
         setUrl(objectUrl);
       } catch {
-        /* ignore */
+        if (!cancelled) setLoadError(true);
       }
     })();
 
@@ -41,6 +45,10 @@ export function AttachmentPreview({ path, kind, compact }: AttachmentPreviewProp
       cancelled = true;
     };
   }, [container, path]);
+
+  if (loadError) {
+    return <span className="record-subtitle">{compact ? "加载失败" : "附件加载失败"}</span>;
+  }
 
   if (!url) {
     return <span className="record-subtitle">{compact ? "…" : "加载附件…"}</span>;
@@ -66,5 +74,18 @@ export function AttachmentPreview({ path, kind, compact }: AttachmentPreviewProp
     );
   }
 
-  return <audio className="audio-player" controls src={url} preload="none" />;
+  if (playError) {
+    return <span className="record-subtitle">当前设备无法播放此录音格式</span>;
+  }
+
+  return (
+    <audio
+      className="audio-player"
+      controls
+      src={url}
+      preload="metadata"
+      playsInline
+      onError={() => setPlayError(true)}
+    />
+  );
 }

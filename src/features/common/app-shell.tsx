@@ -9,6 +9,7 @@ import { WorkbenchView } from "@/features/views/workbench-view";
 import { AppContainerProvider, useAppContainer } from "@/lib/app-container";
 import { DataStoreProvider } from "@/lib/data-store";
 import { TabBar, TAB_ROOTS } from "@/features/common/tab-bar";
+import { IOSAlertProvider } from "@/features/common/ios-alert";
 import { ToastProvider } from "@/features/common/toast";
 
 const TAB_VIEWS: Record<(typeof TAB_ROOTS)[number], React.ComponentType> = {
@@ -63,7 +64,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     <AppContainerProvider>
       <DataStoreProvider>
         <ToastProvider>
-          <ShellInner>{children}</ShellInner>
+          <IOSAlertProvider>
+            <ShellInner>{children}</ShellInner>
+          </IOSAlertProvider>
         </ToastProvider>
       </DataStoreProvider>
     </AppContainerProvider>

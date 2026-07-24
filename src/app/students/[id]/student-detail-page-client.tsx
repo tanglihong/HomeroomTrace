@@ -7,12 +7,14 @@ import type { StudentDTO } from "@/domain/use-cases/repositories";
 import { IOSSection } from "@/features/common/ios-list";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
+import { useIOSAlert } from "@/features/common/ios-alert";
 import { useAppContainer } from "@/lib/app-container";
 
 export default function StudentDetailPageClient() {
   const { id } = useParams<{ id: string }>();
   const container = useAppContainer();
   const toast = useToast();
+  const { confirm } = useIOSAlert();
   const router = useRouter();
   const [student, setStudent] = useState<StudentDTO | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
@@ -118,7 +120,13 @@ export default function StudentDetailPageClient() {
           className="btn-primary"
           style={{ background: "#ff3b30" }}
           onClick={async () => {
-            if (!confirm("确定删除该学生？")) return;
+            const ok = await confirm({
+              title: "确定删除该学生？",
+              message: "删除后无法恢复",
+              confirmLabel: "删除",
+              destructive: true,
+            });
+            if (!ok) return;
             toast.show("请在名册中保留学生数据；当前版本不支持删除", true);
             router.push("/students");
           }}

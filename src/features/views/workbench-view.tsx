@@ -6,8 +6,8 @@ import { ALL_WORK_RECORD_TYPES, RecordTypeConfig } from "@/domain/models/work-re
 import { RecordTypeIcon } from "@/features/common/icons";
 import { IOSEmpty } from "@/features/common/ios-list";
 import { IOSNavBar, IOSNavLink } from "@/features/common/ios-nav-bar";
+import { RecordListGroup } from "@/features/records/record-list-group";
 import { useDataStore } from "@/lib/data-store";
-import { recordRowSubtitle } from "@/lib/format";
 
 export const WorkbenchView = memo(function WorkbenchView() {
   const { records } = useDataStore();
@@ -32,19 +32,7 @@ export const WorkbenchView = memo(function WorkbenchView() {
         ) : recent.length === 0 ? (
           <IOSEmpty title="暂无留痕" description="点击上方类型开始记录" />
         ) : (
-          <div className="ios-group">
-            {recent.map((item) => (
-              <Link key={item.id} href={`/records/detail?id=${item.id}`} prefetch className="ios-row has-chevron record-row">
-                <div className="record-row-main">
-                  <RecordTypeIcon type={item.type} size={18} />
-                  <div className="record-row-text">
-                    <div className="record-row-title">{item.title}</div>
-                    <div className="record-subtitle">{recordRowSubtitle(item)}</div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+          <RecordListGroup records={recent} />
         )}
       </div>
     </>

@@ -10,6 +10,7 @@ import { IOSButton } from "@/features/common/ios-form";
 import { IOSSection } from "@/features/common/ios-list";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
+import { useIOSAlert } from "@/features/common/ios-alert";
 import { useDataStore } from "@/lib/data-store";
 import { useAppContainer } from "@/lib/app-container";
 import { formatRecordDate } from "@/lib/format";
@@ -22,6 +23,7 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
   const container = useAppContainer();
   const { students: cachedStudents, removeRecord } = useDataStore();
   const toast = useToast();
+  const { confirm } = useIOSAlert();
   const router = useRouter();
   const [record, setRecord] = useState<WorkRecordDTO | null>(null);
   const [students, setStudents] = useState<StudentDTO[]>([]);
@@ -51,7 +53,13 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
   }, [reload]);
 
   const onDelete = async () => {
-    if (!confirm("确定删除这条留痕？")) return;
+    const ok = await confirm({
+      title: "确定删除这条留痕？",
+      message: "删除后无法恢复",
+      confirmLabel: "删除",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await container.records.delete(recordId);
       removeRecord(recordId);
