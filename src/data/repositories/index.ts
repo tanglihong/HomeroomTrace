@@ -12,6 +12,9 @@ import type {
   GradeRepository,
   GradeSheetDTO,
   ImportResult,
+  ParentCommunicationChannel,
+  ParentCommunicationDTO,
+  ParentCommunicationRepository,
   RecordTemplateDTO,
   StudentDTO,
   StudentImportRow,
@@ -25,6 +28,7 @@ import type {
 import { RepositoryError } from "@/domain/use-cases/repositories";
 import type { WorkRecordType } from "@/domain/models/work-record-type";
 import { getDatabase } from "@/data/db/schema";
+import type { StudentRow } from "@/data/db/schema";
 import type { IndexedDBMediaStore } from "@/data/storage/media-store";
 
 function startOfDay(d: Date): number {
@@ -42,26 +46,30 @@ function endOfDay(d: Date): number {
 export class DexieClassRepository implements ClassRepository {
   async list(): Promise<ClassGroupDTO[]> {
     const rows = await getDatabase().classGroups.orderBy("createdAt").toArray();
-    return rows.map((r) => ({ id: r.id, name: r.name, gradeYear: r.gradeYear, createdAt: new Date(r.createdAt) }));
+    return rows.map(mapClassGroup);
   }
 
   async add(name: string, gradeYear: string): Promise<ClassGroupDTO> {
     const row = { id: uuidv4(), name, gradeYear, createdAt: Date.now() };
     await getDatabase().classGroups.add(row);
-    return { id: row.id, name, gradeYear, createdAt: new Date(row.createdAt) };
+    return mapClassGroup(row);
   }
 
   async find(id: string): Promise<ClassGroupDTO | undefined> {
     const r = await getDatabase().classGroups.get(id);
     if (!r) return undefined;
-    return { id: r.id, name: r.name, gradeYear: r.gradeYear, createdAt: new Date(r.createdAt) };
+    return mapClassGroup(r);
   }
 
-  async update(id: string, name: string, gradeYear: string): Promise<void> {
+  async update(id: string, name: string, gradeYear: string, semester?: string): Promise<void> {
     const r = await getDatabase().classGroups.get(id);
     if (!r) throw RepositoryError.notFound();
-    await getDatabase().classGroups.put({ ...r, name, gradeYear });
+    await getDatabase().classGroups.put({ ...r, name, gradeYear, semester });
   }
+}
+
+function mapClassGroup(r: { id: string; name: string; gradeYear: string; semester?: string; createdAt: number }): ClassGroupDTO {
+  return { id: r.id, name: r.name, gradeYear: r.gradeYear, semester: r.semester, createdAt: new Date(r.createdAt) };
 }
 
 export class DexieStudentRepository implements StudentRepository {
@@ -110,14 +118,48 @@ export class DexieStudentRepository implements StudentRepository {
     return rows.map(mapStudent);
   }
 
+  async listActive(classId: string): Promise<StudentDTO[]> {
+    const rows = await getDatabase().students.where("classId").equals(classId).sortBy("studentNo");
+    return rows.filter((s) => !s.archived).map(mapStudent);
+  }
+
   async find(id: string): Promise<StudentDTO | undefined> {
     const s = await getDatabase().students.get(id);
     return s ? mapStudent(s) : undefined;
   }
+
+  async archive(id: string): Promise<void> {
+    const s = await getDatabase().students.get(id);
+    if (!s) throw RepositoryError.notFound();
+    await getDatabase().students.put({ ...s, archived: true });
+  }
+
+  async delete(id: string): Promise<void> {
+    const s = await getDatabase().students.get(id);
+    if (!s) throw RepositoryError.notFound();
+    await getDatabase().students.delete(id);
+  }
+
+  async isStudentNoTaken(classId: string, studentNo: string, excludeId?: string): Promise<boolean> {
+    const rows = await getDatabase().students.where("classId").equals(classId).and((s) => s.studentNo === studentNo).toArray();
+    if (excludeId) return rows.some((s) => s.id !== excludeId);
+    return rows.length > 0;
+  }
 }
 
-function mapStudent(s: { id: string; classId: string; name: string; studentNo: string; gender?: string; parentName?: string; parentPhone?: string; tags: string[]; note?: string }): StudentDTO {
-  return { id: s.id, classId: s.classId, name: s.name, studentNo: s.studentNo, gender: s.gender, parentName: s.parentName, parentPhone: s.parentPhone, tags: s.tags, note: s.note };
+function mapStudent(s: StudentRow): StudentDTO {
+  return {
+    id: s.id,
+    classId: s.classId,
+    name: s.name,
+    studentNo: s.studentNo,
+    gender: s.gender,
+    parentName: s.parentName,
+    parentPhone: s.parentPhone,
+    tags: s.tags,
+    note: s.note,
+    archived: s.archived,
+  };
 }
 
 export class DexieWorkRecordRepository implements WorkRecordRepository {
@@ -139,6 +181,7 @@ export class DexieWorkRecordRepository implements WorkRecordRepository {
       studentIds: draft.studentIds,
       content: draft.content,
       followUp: draft.followUp,
+      followUpDueAt: draft.followUpDueAt?.getTime(),
       templateId: draft.templateId,
       createdAt: now,
       updatedAt: now,
@@ -190,9 +233,60 @@ export class DexieWorkRecordRepository implements WorkRecordRepository {
       studentIds: draft.studentIds,
       content: draft.content,
       followUp: draft.followUp,
+      followUpDueAt: draft.followUpDueAt?.getTime(),
       templateId: draft.templateId,
       updatedAt: Date.now(),
     });
+  }
+
+  async restore(record: WorkRecordDTO): Promise<void> {
+    const existing = await getDatabase().workRecords.get(record.id);
+    if (existing) throw RepositoryError.validation("记录已存在，无法恢复");
+    await getDatabase().workRecords.add({
+      id: record.id,
+      classId: record.classId,
+      typeRaw: record.type,
+      title: record.title,
+      happenedAt: record.happenedAt.getTime(),
+      location: record.location,
+      studentIds: record.studentIds,
+      content: record.content,
+      followUp: record.followUp,
+      followUpDueAt: record.followUpDueAt?.getTime(),
+      templateId: record.templateId,
+      createdAt: record.createdAt.getTime(),
+      updatedAt: record.updatedAt.getTime(),
+    });
+    for (const item of record.attachments) {
+      await getDatabase().attachments.add({
+        id: item.id,
+        recordId: record.id,
+        kindRaw: item.kind,
+        relativePath: item.relativePath,
+        duration: item.duration,
+        createdAt: record.createdAt.getTime(),
+      });
+    }
+  }
+
+  async listDueFollowUps(classId: string): Promise<WorkRecordDTO[]> {
+    const cutoff = endOfDay(new Date());
+    const rows = await getDatabase().workRecords
+      .where("classId")
+      .equals(classId)
+      .filter((e) => !!e.followUp?.trim() && e.followUpDueAt != null && e.followUpDueAt <= cutoff)
+      .toArray();
+    const sorted = rows.sort((a, b) => (a.followUpDueAt ?? 0) - (b.followUpDueAt ?? 0));
+    if (sorted.length === 0) return [];
+    const recordIds = sorted.map((e) => e.id);
+    const allAttachments = await getDatabase().attachments.where("recordId").anyOf(recordIds).toArray();
+    const attachmentsByRecord = new Map<string, typeof allAttachments>();
+    for (const att of allAttachments) {
+      const list = attachmentsByRecord.get(att.recordId) ?? [];
+      list.push(att);
+      attachmentsByRecord.set(att.recordId, list);
+    }
+    return sorted.map((e) => this.mapDTOWithAttachments(e, attachmentsByRecord.get(e.id) ?? []));
   }
 
   async delete(id: string): Promise<void> {
@@ -228,11 +322,23 @@ export class DexieWorkRecordRepository implements WorkRecordRepository {
 
     if (filtered.length === 0) return [];
 
-    if (filter.includeAttachments === false) {
-      return filtered.map((e) => this.mapDTOWithAttachments(e, []));
+    let result = filtered;
+    if (filter.hasAttachment != null) {
+      const recordIds = filtered.map((e) => e.id);
+      const allAttachments = await getDatabase().attachments.where("recordId").anyOf(recordIds).toArray();
+      const recordsWithAttachments = new Set(allAttachments.map((a) => a.recordId));
+      result = filtered.filter((e) =>
+        filter.hasAttachment ? recordsWithAttachments.has(e.id) : !recordsWithAttachments.has(e.id),
+      );
     }
 
-    const recordIds = filtered.map((e) => e.id);
+    if (result.length === 0) return [];
+
+    if (filter.includeAttachments === false) {
+      return result.map((e) => this.mapDTOWithAttachments(e, []));
+    }
+
+    const recordIds = result.map((e) => e.id);
     const allAttachments = await getDatabase().attachments.where("recordId").anyOf(recordIds).toArray();
     const attachmentsByRecord = new Map<string, typeof allAttachments>();
     for (const att of allAttachments) {
@@ -241,7 +347,7 @@ export class DexieWorkRecordRepository implements WorkRecordRepository {
       attachmentsByRecord.set(att.recordId, list);
     }
 
-    return filtered.map((e) => this.mapDTOWithAttachments(e, attachmentsByRecord.get(e.id) ?? []));
+    return result.map((e) => this.mapDTOWithAttachments(e, attachmentsByRecord.get(e.id) ?? []));
   }
 
   async find(id: string): Promise<WorkRecordDTO | undefined> {
@@ -266,6 +372,7 @@ export class DexieWorkRecordRepository implements WorkRecordRepository {
       studentIds: string[];
       content: string;
       followUp?: string;
+      followUpDueAt?: number;
       templateId?: string;
       createdAt: number;
       updatedAt: number;
@@ -282,6 +389,7 @@ export class DexieWorkRecordRepository implements WorkRecordRepository {
       studentIds: e.studentIds,
       content: e.content,
       followUp: e.followUp,
+      followUpDueAt: e.followUpDueAt != null ? new Date(e.followUpDueAt) : undefined,
       templateId: e.templateId,
       attachments: attachments.map((a) => ({
         id: a.id,
@@ -365,12 +473,46 @@ export class DexieAttendanceRepository implements AttendanceRepository {
     await getDatabase().attendances.add({ id: uuidv4(), studentId, date: date.getTime(), statusRaw: status, note });
   }
 
+  async batchAdd(entries: { studentId: string; date: Date; status: AttendanceStatus; note?: string }[]): Promise<void> {
+    if (entries.length === 0) return;
+    const studentIds = [...new Set(entries.map((e) => e.studentId))];
+    const students = await getDatabase().students.where("id").anyOf(studentIds).toArray();
+    const validIds = new Set(students.map((s) => s.id));
+    const rows = entries
+      .filter((e) => validIds.has(e.studentId))
+      .map((e) => ({
+        id: uuidv4(),
+        studentId: e.studentId,
+        date: e.date.getTime(),
+        statusRaw: e.status,
+        note: e.note,
+      }));
+    if (rows.length > 0) await getDatabase().attendances.bulkAdd(rows);
+  }
+
   async list(studentId: string): Promise<AttendanceDTO[]> {
     const rows = await getDatabase().attendances.where("studentId").equals(studentId).toArray();
     return rows
       .sort((a, b) => b.date - a.date)
-      .map((a) => ({ id: a.id, studentId, date: new Date(a.date), status: a.statusRaw as AttendanceStatus, note: a.note }));
+      .map((a) => mapAttendance(a));
   }
+
+  async listByClass(classId: string, date?: Date): Promise<AttendanceDTO[]> {
+    const students = await getDatabase().students.where("classId").equals(classId).toArray();
+    const studentIds = students.map((s) => s.id);
+    if (studentIds.length === 0) return [];
+    let rows = await getDatabase().attendances.where("studentId").anyOf(studentIds).toArray();
+    if (date) {
+      const dayStart = startOfDay(date);
+      const dayEnd = endOfDay(date);
+      rows = rows.filter((a) => a.date >= dayStart && a.date <= dayEnd);
+    }
+    return rows.sort((a, b) => b.date - a.date).map((a) => mapAttendance(a));
+  }
+}
+
+function mapAttendance(a: { id: string; studentId: string; date: number; statusRaw: string; note?: string }): AttendanceDTO {
+  return { id: a.id, studentId: a.studentId, date: new Date(a.date), status: a.statusRaw as AttendanceStatus, note: a.note };
 }
 
 export class DexieBehaviorRepository implements BehaviorRepository {
@@ -416,6 +558,81 @@ export class DexieTemplateRepository implements TemplateRepository {
 
   async list(type: WorkRecordType): Promise<RecordTemplateDTO[]> {
     const rows = await getDatabase().recordTemplates.where("typeRaw").equals(type).toArray();
-    return rows.map((t) => ({ id: t.id, type: t.typeRaw as WorkRecordType, name: t.name, bodySkeleton: t.bodySkeleton }));
+    return rows.map(mapRecordTemplate);
   }
+
+  async saveUser(type: WorkRecordType, name: string, body: string): Promise<string> {
+    const id = uuidv4();
+    await getDatabase().recordTemplates.add({
+      id,
+      typeRaw: type,
+      name,
+      bodySkeleton: body,
+      isUserCreated: true,
+    });
+    return id;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    const template = await getDatabase().recordTemplates.get(id);
+    if (!template) throw RepositoryError.notFound();
+    if (!template.isUserCreated) throw RepositoryError.validation("系统模板不可删除");
+    await getDatabase().recordTemplates.delete(id);
+  }
+}
+
+function mapRecordTemplate(t: { id: string; typeRaw: string; name: string; bodySkeleton: string; isUserCreated?: boolean }): RecordTemplateDTO {
+  return { id: t.id, type: t.typeRaw as WorkRecordType, name: t.name, bodySkeleton: t.bodySkeleton, isUserCreated: t.isUserCreated };
+}
+
+export class DexieParentCommunicationRepository implements ParentCommunicationRepository {
+  async add(
+    studentId: string,
+    date: Date,
+    channel: ParentCommunicationChannel,
+    summary: string,
+    linkedRecordId?: string,
+  ): Promise<string> {
+    const student = await getDatabase().students.get(studentId);
+    if (!student) throw RepositoryError.notFound();
+    const id = uuidv4();
+    await getDatabase().parentCommunications.add({
+      id,
+      studentId,
+      date: date.getTime(),
+      channel,
+      summary,
+      linkedRecordId,
+    });
+    return id;
+  }
+
+  async list(studentId: string): Promise<ParentCommunicationDTO[]> {
+    const rows = await getDatabase().parentCommunications.where("studentId").equals(studentId).toArray();
+    return rows.sort((a, b) => b.date - a.date).map(mapParentCommunication);
+  }
+
+  async delete(id: string): Promise<void> {
+    const row = await getDatabase().parentCommunications.get(id);
+    if (!row) throw RepositoryError.notFound();
+    await getDatabase().parentCommunications.delete(id);
+  }
+}
+
+function mapParentCommunication(row: {
+  id: string;
+  studentId: string;
+  date: number;
+  channel: string;
+  summary: string;
+  linkedRecordId?: string;
+}): ParentCommunicationDTO {
+  return {
+    id: row.id,
+    studentId: row.studentId,
+    date: new Date(row.date),
+    channel: row.channel as ParentCommunicationChannel,
+    summary: row.summary,
+    linkedRecordId: row.linkedRecordId,
+  };
 }

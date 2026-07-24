@@ -8,7 +8,8 @@ import type { WorkRecordType } from "@/domain/models/work-record-type";
 function NewRecordInner() {
   const params = useSearchParams();
   const type = (params.get("type") as WorkRecordType) || "classDiary";
-  return <RecordEditor mode="create" initialType={type} />;
+  const templateId = params.get("templateId") ?? undefined;
+  return <RecordEditor mode="create" initialType={type} initialTemplateId={templateId} />;
 }
 
 export default function NewRecordPage() {

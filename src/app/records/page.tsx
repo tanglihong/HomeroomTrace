@@ -21,15 +21,26 @@ function RecordListInner() {
   const [filteredRecords, setFilteredRecords] = useState<WorkRecordDTO[] | null>(null);
   const [filter, setFilter] = useState<WorkRecordFilter>({});
   const [keyword, setKeyword] = useState("");
+  const [hasAttachmentOnly, setHasAttachmentOnly] = useState(false);
   const debouncedKeyword = useDebouncedValue(keyword, 300);
 
   const queryFilter = useMemo(
-    () => ({ ...filter, studentId, keyword: debouncedKeyword || undefined }),
-    [filter, studentId, debouncedKeyword],
+    () => ({
+      ...filter,
+      studentId,
+      keyword: debouncedKeyword || undefined,
+      hasAttachment: hasAttachmentOnly || undefined,
+    }),
+    [filter, studentId, debouncedKeyword, hasAttachmentOnly],
   );
 
   const hasExtraFilter = Boolean(
-    queryFilter.type || queryFilter.startDate || queryFilter.endDate || queryFilter.keyword || queryFilter.studentId,
+    queryFilter.type ||
+      queryFilter.startDate ||
+      queryFilter.endDate ||
+      queryFilter.keyword ||
+      queryFilter.studentId ||
+      queryFilter.hasAttachment,
   );
 
   const records = useMemo(() => {
@@ -85,6 +96,10 @@ function RecordListInner() {
         </select>
         <input type="search" placeholder="搜索标题/内容" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
       </div>
+      <label className="ios-row" style={{ margin: "0 16px 8px", display: "flex", gap: 8, alignItems: "center" }}>
+        <input type="checkbox" checked={hasAttachmentOnly} onChange={(e) => setHasAttachmentOnly(e.target.checked)} />
+        仅有附件
+      </label>
       <div className="page-content">
         {!cachedRecords && records.length === 0 ? (
           <IOSEmpty title="加载中…" />

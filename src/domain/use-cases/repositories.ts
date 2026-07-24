@@ -17,6 +17,7 @@ export interface WorkRecordFilter {
   endDate?: Date;
   studentId?: string;
   keyword?: string;
+  hasAttachment?: boolean;
   /** 列表场景可跳过附件查询以提升性能 */
   includeAttachments?: boolean;
 }
@@ -31,6 +32,7 @@ export interface StudentDTO {
   parentPhone?: string;
   tags: string[];
   note?: string;
+  archived?: boolean;
 }
 
 export interface AttachmentDraft {
@@ -48,6 +50,7 @@ export interface WorkRecordDraft {
   studentIds: string[];
   content: string;
   followUp?: string;
+  followUpDueAt?: Date;
   templateId?: string;
   attachments: AttachmentDraft[];
 }
@@ -69,6 +72,7 @@ export interface WorkRecordDTO {
   studentIds: string[];
   content: string;
   followUp?: string;
+  followUpDueAt?: Date;
   templateId?: string;
   attachments: AttachmentDTO[];
   createdAt: Date;
@@ -110,6 +114,7 @@ export interface RecordTemplateDTO {
   type: WorkRecordType;
   name: string;
   bodySkeleton: string;
+  isUserCreated?: boolean;
 }
 
 export interface StudentImportRow {
@@ -137,7 +142,19 @@ export interface ClassGroupDTO {
   id: string;
   name: string;
   gradeYear: string;
+  semester?: string;
   createdAt: Date;
+}
+
+export type ParentCommunicationChannel = "phone" | "wechat" | "sms" | "other";
+
+export interface ParentCommunicationDTO {
+  id: string;
+  studentId: string;
+  date: Date;
+  channel: ParentCommunicationChannel;
+  summary: string;
+  linkedRecordId?: string;
 }
 
 export interface StudentRepository {
@@ -146,14 +163,20 @@ export interface StudentRepository {
   setTags(id: string, tags: string[]): Promise<void>;
   importBatch(classId: string, rows: StudentImportRow[]): Promise<ImportResult>;
   list(classId: string): Promise<StudentDTO[]>;
+  listActive(classId: string): Promise<StudentDTO[]>;
   find(id: string): Promise<StudentDTO | undefined>;
+  archive(id: string): Promise<void>;
+  delete(id: string): Promise<void>;
+  isStudentNoTaken(classId: string, studentNo: string, excludeId?: string): Promise<boolean>;
 }
 
 export interface WorkRecordRepository {
   add(draft: WorkRecordDraft): Promise<string>;
   update(id: string, draft: WorkRecordDraft): Promise<void>;
   delete(id: string): Promise<void>;
+  restore(record: WorkRecordDTO): Promise<void>;
   list(classId: string, filter: WorkRecordFilter): Promise<WorkRecordDTO[]>;
+  listDueFollowUps(classId: string): Promise<WorkRecordDTO[]>;
   find(id: string): Promise<WorkRecordDTO | undefined>;
 }
 
@@ -166,7 +189,9 @@ export interface GradeRepository {
 
 export interface AttendanceRepository {
   add(studentId: string, date: Date, status: AttendanceStatus, note?: string): Promise<void>;
+  batchAdd(entries: { studentId: string; date: Date; status: AttendanceStatus; note?: string }[]): Promise<void>;
   list(studentId: string): Promise<AttendanceDTO[]>;
+  listByClass(classId: string, date?: Date): Promise<AttendanceDTO[]>;
 }
 
 export interface BehaviorRepository {
@@ -178,13 +203,21 @@ export interface BehaviorRepository {
 export interface TemplateRepository {
   seedDefaultsIfNeeded(): Promise<void>;
   list(type: WorkRecordType): Promise<RecordTemplateDTO[]>;
+  saveUser(type: WorkRecordType, name: string, body: string): Promise<string>;
+  deleteUser(id: string): Promise<void>;
 }
 
 export interface ClassRepository {
   list(): Promise<ClassGroupDTO[]>;
   add(name: string, gradeYear: string): Promise<ClassGroupDTO>;
   find(id: string): Promise<ClassGroupDTO | undefined>;
-  update(id: string, name: string, gradeYear: string): Promise<void>;
+  update(id: string, name: string, gradeYear: string, semester?: string): Promise<void>;
+}
+
+export interface ParentCommunicationRepository {
+  add(studentId: string, date: Date, channel: ParentCommunicationChannel, summary: string, linkedRecordId?: string): Promise<string>;
+  list(studentId: string): Promise<ParentCommunicationDTO[]>;
+  delete(id: string): Promise<void>;
 }
 
 export interface MediaStore {

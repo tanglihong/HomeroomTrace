@@ -16,3 +16,24 @@ export function useStableCallback<T extends (...args: never[]) => unknown>(fn: T
   ref.current = fn;
   return useCallback(((...args: Parameters<T>) => ref.current(...args)) as T, []);
 }
+
+/** 保存/提交类异步操作：防重复提交 + 配合 LoadingOverlay */
+export function useSavingAction(message = "保存中…") {
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+
+  const runSaving = useCallback(async (fn: () => Promise<void>): Promise<boolean> => {
+    if (savingRef.current) return false;
+    savingRef.current = true;
+    setSaving(true);
+    try {
+      await fn();
+      return true;
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
+  }, []);
+
+  return { saving, runSaving, savingMessage: message };
+}

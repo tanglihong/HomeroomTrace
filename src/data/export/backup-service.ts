@@ -11,6 +11,7 @@ const DB_TABLES = [
   "attendances",
   "behaviorPoints",
   "recordTemplates",
+  "parentCommunications",
 ] as const;
 
 /** 本地备份与还原（JSON + 媒体 Blob）。 */

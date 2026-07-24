@@ -63,7 +63,7 @@ export function DataStoreProvider({ children }: { children: ReactNode }) {
       if (!force && studentsCacheRef.current && cacheClassIdRef.current === currentClassId) {
         return studentsCacheRef.current;
       }
-      const data = await students.list(currentClassId);
+      const data = await students.listActive(currentClassId);
       setStudentsCache(data);
       setCacheClassId(currentClassId);
       return data;
@@ -131,7 +131,7 @@ export function DataStoreProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     void (async () => {
       const [studentRows, recordRows, sheetRows] = await Promise.all([
-        students.list(currentClassId),
+        students.listActive(currentClassId),
         records.list(currentClassId, LIST_FILTER),
         grades.listSheets(currentClassId),
       ]);

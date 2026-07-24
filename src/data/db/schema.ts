@@ -4,6 +4,7 @@ export interface ClassGroupRow {
   id: string;
   name: string;
   gradeYear: string;
+  semester?: string;
   createdAt: number;
 }
 
@@ -17,6 +18,7 @@ export interface StudentRow {
   parentPhone?: string;
   tags: string[];
   note?: string;
+  archived?: boolean;
 }
 
 export interface WorkRecordRow {
@@ -29,6 +31,7 @@ export interface WorkRecordRow {
   studentIds: string[];
   content: string;
   followUp?: string;
+  followUpDueAt?: number;
   templateId?: string;
   createdAt: number;
   updatedAt: number;
@@ -82,6 +85,16 @@ export interface RecordTemplateRow {
   typeRaw: string;
   name: string;
   bodySkeleton: string;
+  isUserCreated?: boolean;
+}
+
+export interface ParentCommunicationRow {
+  id: string;
+  studentId: string;
+  date: number;
+  channel: string;
+  summary: string;
+  linkedRecordId?: string;
 }
 
 export interface MediaFileRow {
@@ -100,6 +113,7 @@ export class HomeroomDatabase extends Dexie {
   attendances!: EntityTable<AttendanceRow, "id">;
   behaviorPoints!: EntityTable<BehaviorPointRow, "id">;
   recordTemplates!: EntityTable<RecordTemplateRow, "id">;
+  parentCommunications!: EntityTable<ParentCommunicationRow, "id">;
   mediaFiles!: EntityTable<MediaFileRow, "relativePath">;
 
   constructor(name = "HomeroomTrace") {
@@ -114,6 +128,19 @@ export class HomeroomDatabase extends Dexie {
       attendances: "id, studentId, date",
       behaviorPoints: "id, studentId, date",
       recordTemplates: "id, typeRaw",
+      mediaFiles: "relativePath",
+    });
+    this.version(2).stores({
+      classGroups: "id, createdAt",
+      students: "id, classId, studentNo",
+      workRecords: "id, classId, happenedAt, typeRaw, followUpDueAt",
+      attachments: "id, recordId, relativePath",
+      gradeSheets: "id, classId, examDate",
+      gradeEntries: "id, sheetId, studentNo",
+      attendances: "id, studentId, date",
+      behaviorPoints: "id, studentId, date",
+      recordTemplates: "id, typeRaw",
+      parentCommunications: "id, studentId, date",
       mediaFiles: "relativePath",
     });
   }

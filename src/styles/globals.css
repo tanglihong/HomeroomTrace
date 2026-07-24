@@ -1,18 +1,22 @@
 :root {
-  --ios-bg: #f2f2f7;
+  --ios-bg: #f8f5f6;
   --ios-bg-elevated: #ffffff;
   --ios-card: #ffffff;
-  --ios-accent: #007aff;
-  --ios-accent-pressed: #0062cc;
-  --ios-label: #000000;
-  --ios-secondary-label: #3c3c43;
-  --ios-tertiary-label: #3c3c4399;
+  --ios-accent: #b5838d;
+  --ios-accent-pressed: #9a6b75;
+  --ios-accent-soft: #d4a5ae;
+  --ios-accent-tint: rgba(181, 131, 141, 0.12);
+  --ios-accent-tint-medium: rgba(181, 131, 141, 0.18);
+  --ios-accent-tint-strong: rgba(181, 131, 141, 0.28);
+  --ios-label: #2c2c2e;
+  --ios-secondary-label: #48484a;
+  --ios-tertiary-label: #48484a99;
   --ios-secondary: #8e8e93;
-  --ios-separator: rgba(60, 60, 67, 0.29);
-  --ios-separator-opaque: #c6c6c8;
-  --ios-fill: rgba(120, 120, 128, 0.16);
-  --ios-fill-secondary: rgba(120, 120, 128, 0.12);
-  --ios-danger: #ff3b30;
+  --ios-separator: rgba(60, 60, 67, 0.22);
+  --ios-separator-opaque: #d1c9cb;
+  --ios-fill: rgba(181, 131, 141, 0.1);
+  --ios-fill-secondary: rgba(181, 131, 141, 0.07);
+  --ios-danger: #e07373;
   --ios-radius-sm: 8px;
   --ios-radius: 10px;
   --ios-radius-lg: 12px;
@@ -21,23 +25,29 @@
   --nav-large-height: 96px;
   --tab-height: 49px;
   --page-padding: 16px;
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 3px rgba(181, 131, 141, 0.06), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-elevated: 0 4px 16px rgba(181, 131, 141, 0.1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --ios-bg: #000000;
+    --ios-bg: #1a1718;
     --ios-bg-elevated: #1c1c1e;
     --ios-card: #1c1c1e;
+    --ios-accent: #d4a5ae;
+    --ios-accent-pressed: #b5838d;
+    --ios-accent-soft: #e8c4cb;
+    --ios-accent-tint: rgba(212, 165, 174, 0.16);
+    --ios-accent-tint-medium: rgba(212, 165, 174, 0.24);
+    --ios-accent-tint-strong: rgba(212, 165, 174, 0.36);
     --ios-label: #ffffff;
     --ios-secondary-label: #ebebf5;
     --ios-tertiary-label: #ebebf599;
     --ios-secondary: #8e8e93;
     --ios-separator: rgba(84, 84, 88, 0.65);
     --ios-separator-opaque: #38383a;
-    --ios-fill: rgba(120, 120, 128, 0.24);
-    --ios-fill-secondary: rgba(120, 120, 128, 0.18);
+    --ios-fill: rgba(212, 165, 174, 0.14);
+    --ios-fill-secondary: rgba(212, 165, 174, 0.1);
     --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.4);
   }
@@ -74,7 +84,7 @@ textarea {
 }
 
 ::selection {
-  background: rgba(0, 122, 255, 0.25);
+  background: var(--ios-accent-tint-strong);
 }
 
 .app-shell {
@@ -112,7 +122,7 @@ textarea {
   align-items: center;
   min-height: var(--nav-height);
   padding: 0 8px;
-  background: rgba(242, 242, 247, 0.88);
+  background: rgba(248, 245, 246, 0.92);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 0.5px solid var(--ios-separator);
@@ -164,24 +174,28 @@ textarea {
 .ios-nav-back {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   color: var(--ios-accent);
-  font-size: 17px;
-  padding: 8px;
-  margin-left: -4px;
-  border-radius: var(--ios-radius-sm);
-  transition: opacity 0.15s;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  padding: 8px 10px 8px 6px;
+  margin-left: -2px;
+  border-radius: 20px;
+  transition: background 0.15s, color 0.15s;
 }
 
 .ios-nav-back:active {
-  opacity: 0.55;
+  background: var(--ios-accent-tint);
+  opacity: 1;
 }
 
 .ios-nav-back-chevron {
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1;
-  margin-top: -2px;
-  font-weight: 300;
+  margin-top: -1px;
+  font-weight: 400;
+  opacity: 0.88;
 }
 
 .ios-nav-right {
@@ -197,16 +211,18 @@ textarea {
   color: var(--ios-accent);
   background: none;
   border: none;
-  font-size: 17px;
-  font-weight: 400;
-  padding: 8px 4px;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  padding: 8px 10px;
   cursor: pointer;
-  border-radius: var(--ios-radius-sm);
-  transition: opacity 0.15s;
+  border-radius: 20px;
+  transition: background 0.15s, opacity 0.15s;
 }
 
 .ios-nav-link:active:not(:disabled) {
-  opacity: 0.55;
+  background: var(--ios-accent-tint);
+  opacity: 1;
 }
 
 .ios-nav-link:disabled {
@@ -695,6 +711,149 @@ textarea {
   flex-shrink: 0;
 }
 
+.ios-form-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  color: var(--ios-accent);
+  cursor: pointer;
+  text-align: left;
+}
+
+.ios-form-picker-chevron {
+  color: #c7c7cc;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.selected-students-summary {
+  display: block;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+/* ── iOS Sheet (Picker) ── */
+
+.ios-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: var(--ios-bg, #f2f2f7);
+  animation: ios-sheet-slide-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.ios-sheet-full {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  height: 100dvh;
+}
+
+.ios-sheet-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  padding: calc(env(safe-area-inset-top) + 8px) 12px 8px;
+  background: var(--ios-card, #fff);
+  border-bottom: 0.5px solid var(--ios-separator);
+}
+
+.ios-sheet-nav-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.ios-sheet-nav-btn {
+  min-width: 56px;
+  padding: 8px 4px;
+  border: none;
+  background: transparent;
+  font-size: 17px;
+  color: var(--ios-accent, #b5838d);
+  cursor: pointer;
+}
+
+.ios-sheet-nav-btn-primary {
+  font-weight: 600;
+  text-align: right;
+}
+
+.ios-sheet-search {
+  padding: 8px 16px;
+  background: var(--ios-bg, #f2f2f7);
+}
+
+.ios-sheet-search input {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(118, 118, 128, 0.12);
+  font-size: 17px;
+}
+
+.ios-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px calc(env(safe-area-inset-bottom) + 16px);
+  -webkit-overflow-scrolling: touch;
+}
+
+.ios-sheet-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #8e8e93;
+  font-size: 15px;
+}
+
+.ios-picker-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 0.5px solid var(--ios-separator);
+  background: var(--ios-card, #fff);
+  font-size: 17px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ios-picker-row:last-child {
+  border-bottom: none;
+}
+
+.ios-picker-row:active {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.ios-picker-check {
+  color: var(--ios-accent, #b5838d);
+  font-size: 20px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+@keyframes ios-sheet-slide-in {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 /* ── iOS Action Rows (附件等) ── */
 
 .ios-group .ios-action-row,
@@ -752,6 +911,24 @@ textarea {
 
 .ios-action-row-destructive {
   color: var(--ios-danger);
+}
+
+.ios-action-row-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.import-spec-list {
+  margin: 0;
+  padding: 12px 16px 12px 32px;
+  font-size: 14px;
+  color: #8e8e93;
+  line-height: 1.5;
+  list-style: disc;
+}
+
+.import-spec-list li + li {
+  margin-top: 4px;
 }
 
 .ios-action-row-icon {
@@ -827,12 +1004,12 @@ label.ios-action-row .ios-hidden-input {
 }
 
 .ios-btn-tinted {
-  background: rgba(0, 122, 255, 0.12);
+  background: var(--ios-accent-tint);
   color: var(--ios-accent);
 }
 
 .ios-btn-tinted:active:not(:disabled) {
-  background: rgba(0, 122, 255, 0.2);
+  background: var(--ios-accent-tint-medium);
   transform: scale(0.98);
 }
 
@@ -978,7 +1155,7 @@ label.ios-action-row .ios-hidden-input {
 .tag {
   padding: 5px 12px;
   border-radius: 999px;
-  background: rgba(0, 122, 255, 0.12);
+  background: var(--ios-accent-tint);
   color: var(--ios-accent);
   font-size: 14px;
   font-weight: 500;
@@ -1069,6 +1246,194 @@ label.ios-action-row .ios-hidden-input {
   background: rgba(255, 59, 48, 0.92);
 }
 
+.toast-undo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+}
+
+.toast-undo-message {
+  flex: 1;
+}
+
+.toast-undo-btn {
+  border: none;
+  background: transparent;
+  color: #ffd60a;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  flex-shrink: 0;
+}
+
+.toast-undo-btn:active {
+  opacity: 0.7;
+}
+
+/* ── Stat Cards ── */
+
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 0 var(--page-padding);
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  padding: 14px;
+  border-radius: var(--ios-radius-lg);
+  background: var(--ios-card);
+  box-shadow: var(--shadow-card);
+}
+
+.stat-card-skeleton {
+  min-height: 72px;
+  background: var(--ios-fill-secondary);
+}
+
+.stat-card-value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+.stat-card-label {
+  margin-top: 4px;
+  font-size: 14px;
+  color: var(--ios-secondary);
+}
+
+.stat-card-hint {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--ios-tertiary-label);
+}
+
+/* ── Grade Trend Chart ── */
+
+.grade-trend-chart {
+  padding: 12px 16px;
+}
+
+.grade-trend-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.grade-trend-row:last-child {
+  margin-bottom: 0;
+}
+
+.grade-trend-label {
+  font-size: 14px;
+  color: var(--ios-label);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grade-trend-bar-track {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--ios-fill-secondary);
+  overflow: hidden;
+}
+
+.grade-trend-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  background: var(--ios-accent);
+  min-width: 2px;
+  transition: width 0.3s ease;
+}
+
+.grade-trend-value {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  color: var(--ios-secondary);
+}
+
+/* ── Import Preview ── */
+
+.import-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.import-preview-table th,
+.import-preview-table td {
+  padding: 10px 12px;
+  border-bottom: 0.5px solid var(--ios-separator);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.import-preview-table th {
+  font-weight: 600;
+  color: var(--ios-secondary);
+  font-size: 13px;
+}
+
+.import-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Tag Picker ── */
+
+.tag-picker {
+  padding: 12px 16px;
+}
+
+.tag-chip {
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+}
+
+.tag-chip:not(.tag-chip-selected) {
+  background: var(--ios-fill-secondary);
+  color: var(--ios-secondary-label);
+}
+
+.tag-chip-selected {
+  background: var(--ios-accent-tint);
+  color: var(--ios-accent);
+}
+
+.tag-chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.tag-picker-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.tag-picker-input-row input {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--ios-radius);
+  background: var(--ios-fill-secondary);
+  font-size: 15px;
+}
+
+.tag-picker-input-row .ios-btn {
+  padding: 10px 16px;
+  font-size: 15px;
+}
+
 /* ── iOS Alert ── */
 
 .ios-alert-backdrop {
@@ -1139,7 +1504,7 @@ label.ios-action-row .ios-hidden-input {
 
 .ios-alert-btn-primary {
   font-weight: 600;
-  color: var(--color-accent, #007aff);
+  color: var(--color-accent, #b5838d);
 }
 
 .ios-alert-btn-destructive {
@@ -1221,4 +1586,320 @@ label.ios-action-row .ios-hidden-input {
 .grid-2,
 .grid-btn {
   display: none;
+}
+
+/* 待跟进消息气泡 */
+.follow-up-section {
+  margin-bottom: 8px;
+}
+
+.follow-up-bubbles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 var(--page-padding);
+}
+
+.follow-up-bubble {
+  display: block;
+  padding: 12px 14px;
+  background: var(--ios-card);
+  border-radius: 18px 18px 18px 4px;
+  box-shadow: var(--shadow-card);
+  text-decoration: none;
+  color: inherit;
+  border-left: 3px solid var(--ios-accent);
+}
+
+.follow-up-bubble:active {
+  opacity: 0.85;
+}
+
+.follow-up-bubble-tag {
+  display: inline-block;
+  font-size: 12px;
+  color: var(--ios-accent);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.follow-up-bubble-title {
+  display: block;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.follow-up-bubble-text {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--ios-secondary);
+  line-height: 1.4;
+}
+
+.follow-up-bubble-date {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--ios-danger);
+}
+
+/* 草稿自动保存 */
+.draft-restore-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 var(--page-padding) 8px;
+  padding: 10px 14px;
+  background: rgba(255, 149, 0, 0.12);
+  border-radius: var(--ios-radius-md);
+  font-size: 14px;
+}
+
+.draft-restore-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.draft-restore-btn {
+  border: none;
+  background: var(--ios-fill);
+  color: var(--ios-label);
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.draft-restore-btn.primary {
+  background: var(--ios-accent);
+  color: #fff;
+}
+
+.draft-saved-hint {
+  text-align: center;
+  font-size: 13px;
+  color: var(--ios-secondary);
+  padding: 4px 16px 8px;
+}
+
+.template-market-link {
+  text-decoration: none;
+  display: flex;
+}
+
+.template-market-page {
+  padding-bottom: 24px;
+}
+
+.template-market-hint {
+  padding: 0 16px 12px;
+  margin: 0;
+  color: #8e8e93;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.template-market-section {
+  margin-bottom: 20px;
+}
+
+.template-market-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 var(--page-padding);
+}
+
+.template-market-card {
+  background: var(--ios-card);
+  border-radius: var(--ios-radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.template-market-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.template-market-card-header .record-row-title {
+  white-space: normal;
+  font-weight: 600;
+}
+
+.template-body-preview {
+  margin: 0;
+  padding: 12px 14px;
+  background: var(--ios-fill-quaternary, rgba(118, 118, 128, 0.08));
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ios-label);
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 0.5px solid var(--ios-separator);
+}
+
+.template-use-btn {
+  display: block;
+  margin-top: 12px;
+  padding: 11px 16px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--ios-radius-lg);
+  background: linear-gradient(135deg, var(--ios-accent) 0%, var(--ios-accent-soft) 100%);
+  box-shadow: 0 2px 10px rgba(181, 131, 141, 0.22);
+  transition: transform 0.12s, box-shadow 0.12s, opacity 0.12s;
+}
+
+.template-use-btn:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 6px rgba(181, 131, 141, 0.18);
+  opacity: 0.92;
+}
+
+.template-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: var(--ios-fill);
+  color: var(--ios-secondary);
+  font-weight: 500;
+}
+
+.template-delete-btn {
+  border: none;
+  background: none;
+  color: var(--ios-danger);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+/* 学情折线图 */
+.grade-line-chart {
+  padding: 8px 16px 16px;
+}
+
+.grade-line-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: var(--ios-secondary);
+}
+
+.grade-line-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.grade-line-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.grade-line-plot {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-height: 120px;
+  padding-top: 8px;
+}
+
+.grade-line-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.grade-line-dots {
+  position: relative;
+  width: 100%;
+  height: 100px;
+}
+
+.grade-line-point {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.grade-line-x-label {
+  margin-top: 6px;
+  font-size: 10px;
+  color: var(--ios-secondary);
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 偏科雷达图 */
+.grade-radar-chart {
+  padding: 8px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.grade-radar-title {
+  font-size: 14px;
+  color: var(--ios-secondary);
+  margin: 0 0 8px;
+}
+
+.grade-radar-svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+}
+
+.grade-radar-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--ios-secondary);
+}
+
+.grade-radar-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+.grade-radar-dot.score {
+  background: rgba(181, 131, 141, 0.55);
+}
+
+.grade-radar-dot.avg {
+  background: rgba(142, 142, 147, 0.5);
 }

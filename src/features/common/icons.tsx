@@ -225,7 +225,7 @@ const RECORD_TYPE_META: Record<
   WorkRecordType,
   { Icon: ComponentType<IconProps>; color: string; bg: string }
 > = {
-  homeVisit: { Icon: IconPhone, color: "#007AFF", bg: "rgba(0,122,255,0.12)" },
+  homeVisit: { Icon: IconPhone, color: "#B5838D", bg: "rgba(181,131,141,0.14)" },
   talk: { Icon: IconBubble, color: "#5856D6", bg: "rgba(88,86,214,0.12)" },
   classMeeting: { Icon: IconUsers, color: "#FF9500", bg: "rgba(255,149,0,0.12)" },
   parentMeeting: { Icon: IconPeople, color: "#34C759", bg: "rgba(52,199,89,0.12)" },

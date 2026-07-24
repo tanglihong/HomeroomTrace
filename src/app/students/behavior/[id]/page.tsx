@@ -5,6 +5,7 @@ export function generateStaticParams() {
   return dynamicRouteStaticParams();
 }
 
-export default function BehaviorPage() {
-  return <BehaviorPageClient />;
+export default async function BehaviorPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <BehaviorPageClient studentId={id} />;
 }

@@ -6,6 +6,7 @@ import {
   DexieBehaviorRepository,
   DexieClassRepository,
   DexieGradeRepository,
+  DexieParentCommunicationRepository,
   DexieStudentRepository,
   DexieTemplateRepository,
   DexieWorkRecordRepository,
@@ -17,11 +18,14 @@ import type {
   ClassRepository,
   GradeRepository,
   MediaStore,
+  ParentCommunicationRepository,
   StudentRepository,
   TemplateRepository,
   WorkRecordRepository,
 } from "@/domain/use-cases/repositories";
 import { RepositoryError } from "@/domain/use-cases/repositories";
+
+const ACTIVE_CLASS_STORAGE_KEY = "ht-active-class-id";
 
 export interface AppContainerValue {
   ready: boolean;
@@ -34,6 +38,7 @@ export interface AppContainerValue {
   attendance: AttendanceRepository;
   behavior: BehaviorRepository;
   templates: TemplateRepository;
+  parentCommunications: ParentCommunicationRepository;
   mediaStore: MediaStore;
   requireClassId: () => string;
 }
@@ -50,6 +55,7 @@ const CONTAINER_REPOS = (() => {
     attendance: new DexieAttendanceRepository(),
     behavior: new DexieBehaviorRepository(),
     templates: new DexieTemplateRepository(),
+    parentCommunications: new DexieParentCommunicationRepository(),
     mediaStore,
   };
 })();
@@ -57,7 +63,16 @@ const CONTAINER_REPOS = (() => {
 /** 依赖注入容器：组装 Data 实现供 Features 使用。 */
 export function AppContainerProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
-  const [currentClassId, setCurrentClassId] = useState<string | null>(null);
+  const [currentClassId, setCurrentClassIdState] = useState<string | null>(null);
+
+  const setCurrentClassId = useCallback((id: string) => {
+    setCurrentClassIdState(id);
+    try {
+      localStorage.setItem(ACTIVE_CLASS_STORAGE_KEY, id);
+    } catch {
+      /* ignore storage errors */
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -66,7 +81,16 @@ export function AppContainerProvider({ children }: { children: ReactNode }) {
         await CONTAINER_REPOS.templates.seedDefaultsIfNeeded();
         const list = await CONTAINER_REPOS.classRepository.list();
         if (cancelled) return;
-        if (list.length > 0) {
+        const savedId = (() => {
+          try {
+            return localStorage.getItem(ACTIVE_CLASS_STORAGE_KEY);
+          } catch {
+            return null;
+          }
+        })();
+        if (savedId && list.some((c) => c.id === savedId)) {
+          setCurrentClassId(savedId);
+        } else if (list.length > 0) {
           setCurrentClassId(list[0].id);
         } else {
           const created = await CONTAINER_REPOS.classRepository.add("默认班级", "本学期");
@@ -80,7 +104,7 @@ export function AppContainerProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [setCurrentClassId]);
 
   const requireClassId = useCallback(() => {
     if (!currentClassId) throw RepositoryError.invalidClass();
@@ -95,7 +119,7 @@ export function AppContainerProvider({ children }: { children: ReactNode }) {
       ...CONTAINER_REPOS,
       requireClassId,
     }),
-    [ready, currentClassId, requireClassId],
+    [ready, currentClassId, setCurrentClassId, requireClassId],
   );
 
   return <AppContainerContext.Provider value={value}>{children}</AppContainerContext.Provider>;

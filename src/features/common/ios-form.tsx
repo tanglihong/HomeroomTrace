@@ -31,18 +31,20 @@ export function IOSButton({
 
 interface IOSFileButtonProps {
   accept?: string;
+  multiple?: boolean;
   onChange: InputHTMLAttributes<HTMLInputElement>["onChange"];
   children: ReactNode;
   icon?: ReactNode;
+  disabled?: boolean;
 }
 
 /** 文件选择按钮（隐藏 input，避免布局错乱） */
-export function IOSFileButton({ accept, onChange, children, icon }: IOSFileButtonProps) {
+export function IOSFileButton({ accept, multiple, onChange, children, icon, disabled }: IOSFileButtonProps) {
   return (
-    <label className="ios-action-row">
+    <label className={`ios-action-row ${disabled ? "ios-action-row-disabled" : ""}`}>
       {icon && <span className="ios-action-row-icon">{icon}</span>}
       <span className="ios-action-row-label">{children}</span>
-      <input type="file" accept={accept} className="ios-hidden-input" onChange={onChange} />
+      <input type="file" accept={accept} multiple={multiple} className="ios-hidden-input" onChange={onChange} disabled={disabled} />
     </label>
   );
 }

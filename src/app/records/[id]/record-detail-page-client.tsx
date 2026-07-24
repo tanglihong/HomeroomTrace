@@ -11,9 +11,11 @@ import { IOSSection } from "@/features/common/ios-list";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
 import { useToast } from "@/features/common/toast";
 import { useIOSAlert } from "@/features/common/ios-alert";
+import { showUndoToast } from "@/features/common/undo-toast";
 import { useDataStore } from "@/lib/data-store";
 import { useAppContainer } from "@/lib/app-container";
 import { formatRecordDate } from "@/lib/format";
+import { cancelPendingDelete, schedulePendingDelete } from "@/lib/pending-delete";
 
 interface RecordDetailPageClientProps {
   recordId: string;
@@ -21,7 +23,7 @@ interface RecordDetailPageClientProps {
 
 export default function RecordDetailPageClient({ recordId }: RecordDetailPageClientProps) {
   const container = useAppContainer();
-  const { students: cachedStudents, removeRecord } = useDataStore();
+  const { students: cachedStudents, removeRecord, upsertRecord } = useDataStore();
   const toast = useToast();
   const { confirm } = useIOSAlert();
   const router = useRouter();
@@ -55,14 +57,29 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
   const onDelete = async () => {
     const ok = await confirm({
       title: "确定删除这条留痕？",
-      message: "删除后无法恢复",
+      message: "删除后可在 5 秒内撤销",
       confirmLabel: "删除",
       destructive: true,
     });
     if (!ok) return;
     try {
-      await container.records.delete(recordId);
+      const current = await container.records.find(recordId);
+      if (!current) return;
       removeRecord(recordId);
+      schedulePendingDelete(
+        recordId,
+        () => {
+          void container.records.delete(recordId);
+        },
+        () => {
+          void container.records.restore(current).then(() => {
+            upsertRecord(current);
+          });
+        },
+      );
+      showUndoToast(toast, "已删除", () => {
+        cancelPendingDelete(recordId);
+      });
       router.push("/records");
     } catch (e) {
       toast.show(e instanceof Error ? e.message : "删除失败", true);
@@ -116,6 +133,16 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
             <div className="ios-row" style={{ whiteSpace: "pre-wrap" }}>
               {record.followUp}
             </div>
+            {record.followUpDueAt && (
+              <div className="ios-row record-subtitle">
+                截止日期：{formatRecordDate(record.followUpDueAt)}
+              </div>
+            )}
+          </IOSSection>
+        )}
+        {!record.followUp && record.followUpDueAt && (
+          <IOSSection title="跟进截止">
+            <div className="ios-row">{formatRecordDate(record.followUpDueAt)}</div>
           </IOSSection>
         )}
         {record.attachments.length > 0 && (
