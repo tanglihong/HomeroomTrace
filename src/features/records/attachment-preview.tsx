@@ -6,13 +6,26 @@ import { useAppContainer } from "@/lib/app-container";
 
 const urlCache = new Map<string, string>();
 
+export async function resolveMediaUrl(
+  mediaStore: { url: (path: string) => Promise<string> },
+  path: string,
+): Promise<string> {
+  const cached = urlCache.get(path);
+  if (cached) return cached;
+  const objectUrl = await mediaStore.url(path);
+  urlCache.set(path, objectUrl);
+  return objectUrl;
+}
+
 interface AttachmentPreviewProps {
   path: string;
   kind: "photo" | "audio";
   compact?: boolean;
+  viewable?: boolean;
+  onView?: (url: string) => void;
 }
 
-export function AttachmentPreview({ path, kind, compact }: AttachmentPreviewProps) {
+export function AttachmentPreview({ path, kind, compact, viewable, onView }: AttachmentPreviewProps) {
   const container = useAppContainer();
   const [url, setUrl] = useState<string>();
   const [loadError, setLoadError] = useState(false);
@@ -32,9 +45,8 @@ export function AttachmentPreview({ path, kind, compact }: AttachmentPreviewProp
 
     void (async () => {
       try {
-        objectUrl = await container.mediaStore.url(path);
+        objectUrl = await resolveMediaUrl(container.mediaStore, path);
         if (cancelled) return;
-        urlCache.set(path, objectUrl);
         setUrl(objectUrl);
       } catch {
         if (!cancelled) setLoadError(true);
@@ -58,11 +70,18 @@ export function AttachmentPreview({ path, kind, compact }: AttachmentPreviewProp
     if (compact) {
       return <img className="attachment-thumb-image" src={url} alt="照片附件" />;
     }
-    return (
-      <div className="media-preview">
-        <img src={url} alt="照片附件" />
-      </div>
-    );
+
+    const image = <img src={url} alt="照片附件" />;
+
+    if (viewable && onView) {
+      return (
+        <button type="button" className="media-preview-button" onClick={() => onView(url)} aria-label="查看原图">
+          <div className="media-preview">{image}</div>
+        </button>
+      );
+    }
+
+    return <div className="media-preview">{image}</div>;
   }
 
   if (compact) {

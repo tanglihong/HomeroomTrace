@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { RecordTypeConfig } from "@/domain/models/work-record-type";
 import type { StudentDTO, WorkRecordDTO } from "@/domain/use-cases/repositories";
 import { AttachmentPreview } from "@/features/records/attachment-preview";
+import { PhotoLightbox } from "@/features/records/photo-lightbox";
 import { IOSButton } from "@/features/common/ios-form";
 import { IOSSection } from "@/features/common/ios-list";
 import { IOSNavBar } from "@/features/common/ios-nav-bar";
@@ -29,6 +30,7 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
   const router = useRouter();
   const [record, setRecord] = useState<WorkRecordDTO | null>(null);
   const [students, setStudents] = useState<StudentDTO[]>([]);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState<number | null>(null);
 
   const reload = useCallback(async () => {
     try {
@@ -96,6 +98,8 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
   }
 
   const typeName = RecordTypeConfig.configuration(record.type).displayName;
+  const photoAttachments = record.attachments.filter((attachment) => attachment.kind === "photo");
+  const photoIndexByPath = new Map(photoAttachments.map((attachment, index) => [attachment.relativePath, index]));
 
   return (
     <>
@@ -149,7 +153,16 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
           <IOSSection title="附件">
             {record.attachments.map((a) => (
               <div key={a.id} className="ios-row">
-                <AttachmentPreview path={a.relativePath} kind={a.kind} />
+                <AttachmentPreview
+                  path={a.relativePath}
+                  kind={a.kind}
+                  viewable={a.kind === "photo"}
+                  onView={
+                    a.kind === "photo"
+                      ? () => setPhotoViewerIndex(photoIndexByPath.get(a.relativePath) ?? 0)
+                      : undefined
+                  }
+                />
               </div>
             ))}
           </IOSSection>
@@ -158,6 +171,13 @@ export default function RecordDetailPageClient({ recordId }: RecordDetailPageCli
           删除留痕
         </IOSButton>
       </div>
+      {photoViewerIndex !== null && photoAttachments.length > 0 && (
+        <PhotoLightbox
+          paths={photoAttachments.map((attachment) => attachment.relativePath)}
+          initialIndex={photoViewerIndex}
+          onClose={() => setPhotoViewerIndex(null)}
+        />
+      )}
     </>
   );
 }

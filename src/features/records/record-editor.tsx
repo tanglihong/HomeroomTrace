@@ -50,7 +50,15 @@ import { pickAudioRecordingFormat } from "@/lib/audio-recording";
 
 import { compressImage } from "@/lib/image-compress";
 
-import { clearRecordDraft, loadRecordDraft, saveRecordDraft, type RecordEditorDraft } from "@/lib/record-draft";
+import {
+  clearRecordDraft,
+  loadRecordDraft,
+  saveRecordDraft,
+  serializeRecordDraftSnapshot,
+  shouldShowAutosaveDraftHint,
+  shouldWriteAutosaveDraft,
+  type RecordEditorDraft,
+} from "@/lib/record-draft";
 
 
 
@@ -120,13 +128,37 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
   const [draftSavedVisible, setDraftSavedVisible] = useState(false);
 
+  const hasUserEditedRef = useRef(false);
+
+  const lastSavedSnapshotRef = useRef<string | null>(null);
+
   const templateAppliedRef = useRef(false);
+
+  const markUserEdited = () => {
+    hasUserEditedRef.current = true;
+  };
 
 
 
   const config = RecordTypeConfig.configuration(type);
 
   const students = cachedStudents ?? [];
+
+  const draftFields = useMemo(
+    () => ({
+      title,
+      happenedAt,
+      location,
+      content,
+      followUp,
+      followUpDueAt,
+      studentIds,
+      attachments,
+    }),
+    [title, happenedAt, location, content, followUp, followUpDueAt, studentIds, attachments],
+  );
+
+  const draftSnapshot = useMemo(() => serializeRecordDraftSnapshot(draftFields), [draftFields]);
 
 
 
@@ -246,6 +278,28 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
     setAttachments(pendingDraft.attachments);
 
+    hasUserEditedRef.current = false;
+
+    lastSavedSnapshotRef.current = serializeRecordDraftSnapshot({
+
+      title: pendingDraft.title,
+
+      happenedAt: pendingDraft.happenedAt,
+
+      location: pendingDraft.location,
+
+      content: pendingDraft.content,
+
+      followUp: pendingDraft.followUp,
+
+      followUpDueAt: pendingDraft.followUpDueAt ?? "",
+
+      studentIds: pendingDraft.studentIds,
+
+      attachments: pendingDraft.attachments,
+
+    });
+
     setPendingDraft(null);
 
   };
@@ -264,35 +318,47 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
   useEffect(() => {
 
-    const timer = setInterval(() => {
+    if (
+      !shouldWriteAutosaveDraft({
+        hasUserEdited: hasUserEditedRef.current,
+        hasPendingDraftPrompt: pendingDraft !== null,
+      })
+    ) {
+      return;
+    }
 
-      saveRecordDraft(mode, recordId, type, {
+    if (lastSavedSnapshotRef.current === draftSnapshot) {
+      return;
+    }
 
-        title,
+    const timer = window.setTimeout(() => {
 
-        happenedAt,
+      if (
+        !shouldWriteAutosaveDraft({
+          hasUserEdited: hasUserEditedRef.current,
+          hasPendingDraftPrompt: pendingDraft !== null,
+        })
+      ) {
+        return;
+      }
 
-        location,
+      if (lastSavedSnapshotRef.current === draftSnapshot) {
+        return;
+      }
 
-        content,
+      saveRecordDraft(mode, recordId, type, draftFields);
 
-        followUp,
+      lastSavedSnapshotRef.current = draftSnapshot;
 
-        followUpDueAt,
+      if (shouldShowAutosaveDraftHint(draftFields)) {
+        setDraftSavedVisible(true);
+      }
 
-        studentIds,
+    }, 1500);
 
-        attachments,
+    return () => window.clearTimeout(timer);
 
-      });
-
-      setDraftSavedVisible(true);
-
-    }, 3000);
-
-    return () => clearInterval(timer);
-
-  }, [mode, recordId, type, title, happenedAt, location, content, followUp, followUpDueAt, studentIds, attachments]);
+  }, [draftSnapshot, draftFields, mode, recordId, type, pendingDraft]);
 
 
 
@@ -434,6 +500,8 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
         const path = await container.mediaStore.save(blob, "records", "jpg");
 
+        markUserEdited();
+
         setAttachments((prev) => [...prev, { kind: "photo", relativePath: path }]);
 
         added += 1;
@@ -512,6 +580,8 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
           const path = await container.mediaStore.save(blob, "records", format.extension);
 
+          markUserEdited();
+
           setAttachments((prev) => [...prev, { kind: "audio", relativePath: path }]);
 
           toast.show("录音已添加");
@@ -576,6 +646,8 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
   const removeAttachment = useCallback((index: number) => {
 
+    hasUserEditedRef.current = true;
+
     setAttachments((prev) => prev.filter((_, i) => i !== index));
 
   }, []);
@@ -632,19 +704,20 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
       )}
 
-      {draftSavedVisible && !pendingDraft && (
-
-        <div className="draft-saved-hint">草稿已自动保存</div>
-
-      )}
-
       <div className="page-content">
 
         <IOSFormSection title="基本信息">
 
           <IOSFormRow label="类型">
 
-            <select value={type} onChange={(e) => setType(e.target.value as WorkRecordType)} disabled={mode === "edit"}>
+            <select
+              value={type}
+              onChange={(e) => {
+                markUserEdited();
+                setType(e.target.value as WorkRecordType);
+              }}
+              disabled={mode === "edit"}
+            >
 
               {ALL_WORK_RECORD_TYPES.map((t) => (
 
@@ -662,13 +735,26 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
           <IOSFormRow label="标题">
 
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="必填" />
+            <input
+              value={title}
+              onChange={(e) => {
+                markUserEdited();
+                setTitle(e.target.value);
+              }}
+              placeholder="必填"
+            />
 
           </IOSFormRow>
 
           <IOSFormRow label="日期">
 
-            <IOSDateInput value={happenedAt} onChange={(e) => setHappenedAt(e.target.value)} />
+            <IOSDateInput
+              value={happenedAt}
+              onChange={(e) => {
+                markUserEdited();
+                setHappenedAt(e.target.value);
+              }}
+            />
 
           </IOSFormRow>
 
@@ -676,7 +762,14 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
             <IOSFormRow label="地点">
 
-              <input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="选填" />
+              <input
+                value={location}
+                onChange={(e) => {
+                  markUserEdited();
+                  setLocation(e.target.value);
+                }}
+                placeholder="选填"
+              />
 
             </IOSFormRow>
 
@@ -746,7 +839,10 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
           onClose={() => setStudentPickerOpen(false)}
 
-          onConfirm={setStudentIds}
+          onConfirm={(ids) => {
+            markUserEdited();
+            setStudentIds(ids);
+          }}
 
         />
 
@@ -766,7 +862,10 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
                   const tpl = templates.find((t) => t.id === e.target.value);
 
-                  if (tpl) setContent(tpl.bodySkeleton);
+                  if (tpl) {
+                    markUserEdited();
+                    setContent(tpl.bodySkeleton);
+                  }
 
                 }}
 
@@ -804,7 +903,14 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
           <IOSFormRow label="正文" stack>
 
-            <textarea value={content} onChange={(e) => setContent(e.target.value)} placeholder="填写留痕内容…" />
+            <textarea
+              value={content}
+              onChange={(e) => {
+                markUserEdited();
+                setContent(e.target.value);
+              }}
+              placeholder="填写留痕内容…"
+            />
 
           </IOSFormRow>
 
@@ -814,13 +920,26 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
 
               <IOSFormRow label="跟进" stack>
 
-                <textarea value={followUp} onChange={(e) => setFollowUp(e.target.value)} placeholder="后续跟进计划…" />
+                <textarea
+                  value={followUp}
+                  onChange={(e) => {
+                    markUserEdited();
+                    setFollowUp(e.target.value);
+                  }}
+                  placeholder="后续跟进计划…"
+                />
 
               </IOSFormRow>
 
               <IOSFormRow label="跟进截止">
 
-                <IOSDateInput value={followUpDueAt} onChange={(e) => setFollowUpDueAt(e.target.value)} />
+                <IOSDateInput
+                  value={followUpDueAt}
+                  onChange={(e) => {
+                    markUserEdited();
+                    setFollowUpDueAt(e.target.value);
+                  }}
+                />
 
               </IOSFormRow>
 
@@ -907,6 +1026,12 @@ export function RecordEditor({ mode, recordId, initialType = "classDiary", initi
         </IOSFormSection>
 
       </div>
+
+      {draftSavedVisible && !pendingDraft && (
+        <div className="draft-saved-hint" role="status" aria-live="polite">
+          草稿已自动保存
+        </div>
+      )}
 
     </>
 

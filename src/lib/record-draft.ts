@@ -48,6 +48,43 @@ function removeStorage(key: string): void {
   }
 }
 
+/** 是否应写入自动保存草稿：仅用户主动编辑后，且未显示恢复提示时。 */
+export function shouldWriteAutosaveDraft(options: {
+  hasUserEdited: boolean;
+  hasPendingDraftPrompt: boolean;
+}): boolean {
+  return options.hasUserEdited && !options.hasPendingDraftPrompt;
+}
+
+/** 草稿是否包含用户实质填写的内容（不含仅自动生成的标题）。 */
+export function hasMeaningfulDraftContent(draft: Omit<RecordEditorDraft, "savedAt">): boolean {
+  return (
+    draft.content.trim().length > 0 ||
+    draft.location.trim().length > 0 ||
+    draft.followUp.trim().length > 0 ||
+    draft.studentIds.length > 0 ||
+    draft.attachments.length > 0
+  );
+}
+
+/** 是否应展示自动保存提示：需有实质内容，避免空表单或仅恢复草稿时打扰用户。 */
+export function shouldShowAutosaveDraftHint(draft: Omit<RecordEditorDraft, "savedAt">): boolean {
+  return hasMeaningfulDraftContent(draft);
+}
+
+export function serializeRecordDraftSnapshot(draft: Omit<RecordEditorDraft, "savedAt">): string {
+  return JSON.stringify({
+    title: draft.title,
+    happenedAt: draft.happenedAt,
+    location: draft.location,
+    content: draft.content,
+    followUp: draft.followUp,
+    followUpDueAt: draft.followUpDueAt,
+    studentIds: draft.studentIds,
+    attachments: draft.attachments,
+  });
+}
+
 /** 保存留痕编辑器草稿。 */
 export function saveRecordDraft(
   mode: RecordEditorMode,

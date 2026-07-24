@@ -5,6 +5,8 @@ const withPWA = withPWAInit({
   dest: "public",
   register: true,
   disable: process.env.NODE_ENV === "development",
+  // 关闭 dynamic start-url 插件，避免 SW 中 _async_to_generator 未注入导致报错
+  dynamicStartUrl: false,
   workboxOptions: {
     skipWaiting: true,
     clientsClaim: true,
