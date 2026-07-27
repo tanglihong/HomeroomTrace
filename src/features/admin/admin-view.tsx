@@ -91,7 +91,6 @@ function AdminLoginForm() {
         <IOSButton variant="filled" fullWidth type="submit" disabled={submitting}>
           {submitting ? "登录中…" : "登录管理后台"}
         </IOSButton>
-        <p className="login-page-hint">默认用户名 admin，初始密码见 cloudbase/secrets.local.json</p>
       </form>
     </div>
   );
