@@ -12,9 +12,11 @@ interface IOSNavBarProps {
 }
 
 export function IOSNavBar({ title, backHref, right, large = false }: IOSNavBarProps) {
+  const stickyClass = backHref || right ? " ios-nav-bar-sticky" : "";
+
   if (large && !backHref) {
     return (
-      <header className="ios-nav-bar ios-nav-bar-large">
+      <header className={`ios-nav-bar ios-nav-bar-large${stickyClass}`}>
         <div className="ios-nav-large-top">
           <h1 className="ios-nav-large-title">{title}</h1>
           {right && <div className="ios-nav-large-right">{right}</div>}
@@ -24,7 +26,7 @@ export function IOSNavBar({ title, backHref, right, large = false }: IOSNavBarPr
   }
 
   return (
-    <header className="ios-nav-bar">
+    <header className={`ios-nav-bar${stickyClass}`}>
       <div className="ios-nav-left">
         {backHref ? (
           <Link href={backHref} className="ios-nav-back">

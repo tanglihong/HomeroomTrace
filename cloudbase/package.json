@@ -1,0 +1,13 @@
+{
+  "name": "homeroom-trace-cloudbase",
+  "private": true,
+  "scripts": {
+    "prepare-env": "node scripts/prepare-cloudbaserc-env.mjs",
+    "deploy:login": "npm run prepare-env && tcb fn deploy auth-login --config-file cloudbaserc.deploy.json --envId homeroom-trace-d6govo66p082c0347 --force --yes",
+    "deploy:admin": "npm run prepare-env && tcb fn deploy auth-admin --config-file cloudbaserc.deploy.json --envId homeroom-trace-d6govo66p082c0347 --force --yes",
+    "deploy": "npm run deploy:login && npm run deploy:admin"
+  },
+  "devDependencies": {
+    "@cloudbase/cli": "^2.7.9"
+  }
+}

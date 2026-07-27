@@ -1,0 +1,20 @@
+{
+  "envId": "homeroom-trace-d6govo66p082c0347",
+  "functionRoot": "./functions",
+  "functions": [
+    {
+      "name": "auth-login",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "installDependency": true
+    },
+    {
+      "name": "auth-admin",
+      "timeout": 10,
+      "runtime": "Nodejs18.15",
+      "handler": "index.main",
+      "installDependency": true
+    }
+  ]
+}

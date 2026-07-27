@@ -88,7 +88,8 @@ textarea {
 }
 
 .app-shell {
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   padding-top: env(safe-area-inset-top);
@@ -112,6 +113,9 @@ textarea {
 
 .app-main.no-tab {
   padding-bottom: env(safe-area-inset-bottom);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* ── Navigation Bar ── */
@@ -126,9 +130,13 @@ textarea {
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-bottom: 0.5px solid var(--ios-separator);
+  flex-shrink: 0;
+}
+
+.ios-nav-bar-sticky {
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 50;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -142,6 +150,10 @@ textarea {
   min-height: auto;
   padding: 8px var(--page-padding) 12px;
   border-bottom: none;
+}
+
+.ios-nav-bar-large.ios-nav-bar-sticky {
+  border-bottom: 0.5px solid var(--ios-separator);
 }
 
 .ios-nav-large-top {
@@ -2197,4 +2209,186 @@ label.ios-action-row .ios-hidden-input {
 
 .grade-radar-dot.avg {
   background: rgba(142, 142, 147, 0.5);
+}
+
+/* 登录页 */
+.login-page {
+  min-height: 100dvh;
+  background: #f2f2f7;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.login-page-header {
+  padding: 32px 0 24px;
+  text-align: center;
+}
+
+.login-page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  color: #000;
+}
+
+.login-page-subtitle {
+  margin: 8px 0 0;
+  font-size: 15px;
+  color: #8e8e93;
+}
+
+.login-page-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-page-hint {
+  margin: 0;
+  padding: 0 4px;
+  font-size: 13px;
+  color: #8e8e93;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* 管理员后台 */
+.admin-page {
+  min-height: 100dvh;
+  background: #f2f2f7;
+  padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.admin-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-page-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.admin-page-subtitle {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: #8e8e93;
+}
+
+.admin-create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.admin-list-section {
+  margin-top: 8px;
+}
+
+.admin-search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.admin-search-input {
+  flex: 1;
+  padding: 10px 14px;
+  border: none;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-search-input:focus {
+  outline: 2px solid rgba(0, 122, 255, 0.35);
+}
+
+.admin-search-clear {
+  border: none;
+  background: none;
+  color: #007aff;
+  font-size: 15px;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.admin-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: #8e8e93;
+  font-size: 15px;
+}
+
+.admin-account-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-account-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.admin-account-name {
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.admin-account-meta {
+  font-size: 13px;
+  color: #8e8e93;
+  margin-top: 2px;
+}
+
+.admin-status-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-status-available {
+  background: rgba(52, 199, 89, 0.15);
+  color: #248a3d;
+}
+
+.admin-status-bound {
+  background: rgba(255, 149, 0, 0.15);
+  color: #c93400;
+}
+
+.admin-status-disabled {
+  background: rgba(142, 142, 147, 0.15);
+  color: #636366;
+}
+
+.admin-account-detail {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #636366;
+  line-height: 1.5;
+}
+
+.admin-device-id {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.admin-account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
 }

@@ -6,3 +6,9 @@ public/workbox-*.js
 public/swe-worker-*.js
 *.tsbuildinfo
 next-env.d.ts
+cloudbase/keys/private.pem
+.env.local
+cloudbase/secrets.local.json
+cloudbase/cloudbaserc.deploy.json
+cloudbase/node_modules/
+cloudbase/functions/*/node_modules/

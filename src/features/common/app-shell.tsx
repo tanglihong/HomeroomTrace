@@ -2,11 +2,13 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, type ReactNode } from "react";
+import { LoginView } from "@/features/auth/login-view";
 import { GradesView } from "@/features/views/grades-view";
 import { MineView } from "@/features/views/mine-view";
 import { StudentsView } from "@/features/views/students-view";
 import { WorkbenchView } from "@/features/views/workbench-view";
 import { AppContainerProvider, useAppContainer } from "@/lib/app-container";
+import { AuthProvider, useAuth } from "@/lib/auth/auth-context";
 import { DataStoreProvider } from "@/lib/data-store";
 import { TabBar, TAB_ROOTS } from "@/features/common/tab-bar";
 import { IOSAlertProvider } from "@/features/common/ios-alert";
@@ -59,16 +61,39 @@ function ShellInner({ children }: { children: ReactNode }) {
   );
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
+function AuthGate({ children }: { children: ReactNode }) {
+  const { status } = useAuth();
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/admin")) {
+    return <>{children}</>;
+  }
+
+  if (status === "loading") {
+    return <div className="bootstrap-loading">正在验证…</div>;
+  }
+
+  if (status === "unauthorized") {
+    return <LoginView />;
+  }
+
   return (
     <AppContainerProvider>
       <DataStoreProvider>
-        <ToastProvider>
-          <IOSAlertProvider>
-            <ShellInner>{children}</ShellInner>
-          </IOSAlertProvider>
-        </ToastProvider>
+        <ShellInner>{children}</ShellInner>
       </DataStoreProvider>
     </AppContainerProvider>
+  );
+}
+
+export function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <AuthProvider>
+      <ToastProvider>
+        <IOSAlertProvider>
+          <AuthGate>{children}</AuthGate>
+        </IOSAlertProvider>
+      </ToastProvider>
+    </AuthProvider>
   );
 }
