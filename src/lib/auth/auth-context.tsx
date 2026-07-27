@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { login as apiLogin } from "@/lib/auth/auth-api";
 import { getOrCreateDeviceId } from "@/lib/auth/device-id";
 import { clearLicense, getLicense, getLicenseMeta, saveLicense } from "@/lib/auth/license-store";
-import { validateLicense } from "@/lib/auth/license-validator";
+import { resolvePublicKeyPem, validateLicense } from "@/lib/auth/license-validator";
 
 export type AuthStatus = "loading" | "authorized" | "unauthorized";
 
@@ -28,11 +28,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function bootstrap() {
-      const license = getLicense();
-      const meta = getLicenseMeta();
-      const deviceId = getOrCreateDeviceId();
+      const license = await getLicense();
+      const meta = await getLicenseMeta();
+      const deviceId = await getOrCreateDeviceId();
 
       if (!license) {
+        if (!cancelled) setStatus("unauthorized");
+        return;
+      }
+
+      if (!resolvePublicKeyPem()) {
         if (!cancelled) setStatus("unauthorized");
         return;
       }
@@ -45,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDisplayName(meta?.displayName ?? meta?.username ?? payload.username);
         setStatus("authorized");
       } else {
-        clearLicense();
+        await clearLicense();
         setUsername(null);
         setDisplayName(null);
         setStatus("unauthorized");
@@ -59,9 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (user: string, password: string) => {
-    const deviceId = getOrCreateDeviceId();
+    const deviceId = await getOrCreateDeviceId();
     const result = await apiLogin(user, password, deviceId);
-    saveLicense(result.license, {
+    await saveLicense(result.license, {
       username: result.username,
       displayName: result.displayName,
     });
@@ -71,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
-    clearLicense();
+    void clearLicense();
     setUsername(null);
     setDisplayName(null);
     setStatus("unauthorized");

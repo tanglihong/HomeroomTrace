@@ -103,6 +103,11 @@ export interface MediaFileRow {
   mimeType: string;
 }
 
+export interface AuthStoreRow {
+  key: string;
+  value: string;
+}
+
 export class HomeroomDatabase extends Dexie {
   classGroups!: EntityTable<ClassGroupRow, "id">;
   students!: EntityTable<StudentRow, "id">;
@@ -115,6 +120,7 @@ export class HomeroomDatabase extends Dexie {
   recordTemplates!: EntityTable<RecordTemplateRow, "id">;
   parentCommunications!: EntityTable<ParentCommunicationRow, "id">;
   mediaFiles!: EntityTable<MediaFileRow, "relativePath">;
+  authStore!: EntityTable<AuthStoreRow, "key">;
 
   constructor(name = "HomeroomTrace") {
     super(name);
@@ -142,6 +148,20 @@ export class HomeroomDatabase extends Dexie {
       recordTemplates: "id, typeRaw",
       parentCommunications: "id, studentId, date",
       mediaFiles: "relativePath",
+    });
+    this.version(3).stores({
+      classGroups: "id, createdAt",
+      students: "id, classId, studentNo",
+      workRecords: "id, classId, happenedAt, typeRaw, followUpDueAt",
+      attachments: "id, recordId, relativePath",
+      gradeSheets: "id, classId, examDate",
+      gradeEntries: "id, sheetId, studentNo",
+      attendances: "id, studentId, date",
+      behaviorPoints: "id, studentId, date",
+      recordTemplates: "id, typeRaw",
+      parentCommunications: "id, studentId, date",
+      mediaFiles: "relativePath",
+      authStore: "key",
     });
   }
 }
