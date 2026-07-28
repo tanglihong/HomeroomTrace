@@ -63,11 +63,14 @@ export async function migrateAuthFromLocalStorage(): Promise<void> {
       const fromLocal = readLocalStorage(key);
       if (!fromLocal) continue;
 
-      const existing = await db.authStore.get(key);
-      if (!existing?.value) {
-        await db.authStore.put({ key, value: fromLocal });
+      try {
+        const existing = await db.authStore.get(key);
+        if (!existing?.value) {
+          await db.authStore.put({ key, value: fromLocal });
+        }
+      } catch {
+        // Keep localStorage backup when IndexedDB is unavailable.
       }
-      removeLocalStorage(key);
     }
   })();
 
@@ -88,17 +91,17 @@ export async function readAuthValue(key: string): Promise<string | null> {
   return readLocalStorage(key);
 }
 
-/** Persists an auth value to IndexedDB and localStorage. */
+/** Persists an auth value to localStorage and IndexedDB. */
 export async function writeAuthValue(key: string, value: string): Promise<void> {
+  writeLocalStorage(key, value);
+
   await migrateAuthFromLocalStorage();
 
   try {
     await getDatabase().authStore.put({ key, value });
   } catch {
-    // IndexedDB may fail in rare cases; still try localStorage
+    // localStorage backup already written
   }
-
-  writeLocalStorage(key, value);
 }
 
 /** Removes an auth value from IndexedDB and localStorage. */

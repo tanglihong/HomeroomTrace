@@ -39,7 +39,12 @@ describe("auth-persistence", () => {
     localStorage.setItem(AUTH_KEYS.LICENSE, "jwt-token");
     await migrateAuthFromLocalStorage();
     expect(await readAuthValue(AUTH_KEYS.LICENSE)).toBe("jwt-token");
-    expect(localStorage.getItem(AUTH_KEYS.LICENSE)).toBeNull();
+    expect(localStorage.getItem(AUTH_KEYS.LICENSE)).toBe("jwt-token");
+  });
+
+  it("reads from localStorage when IndexedDB is empty", async () => {
+    localStorage.setItem(AUTH_KEYS.DEVICE_ID, "device-local");
+    expect(await readAuthValue(AUTH_KEYS.DEVICE_ID)).toBe("device-local");
   });
 
   it("clears values from IndexedDB and localStorage", async () => {

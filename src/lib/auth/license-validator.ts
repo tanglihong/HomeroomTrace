@@ -1,4 +1,5 @@
 import { importSPKI, jwtVerify } from "jose";
+import { BUNDLED_JWT_PUBLIC_KEY } from "@/lib/auth/jwt-public-key";
 
 export interface LicensePayload {
   sub: string;
@@ -9,9 +10,9 @@ export interface LicensePayload {
 let cachedPublicKey: CryptoKey | null = null;
 let cachedPublicKeyPem: string | null = null;
 
-/** Resolves RSA public key PEM from env or override (tests). */
+/** Resolves RSA public key PEM from env, bundled key, or override (tests). */
 export function resolvePublicKeyPem(override?: string): string | null {
-  const pem = override ?? process.env.NEXT_PUBLIC_JWT_PUBLIC_KEY ?? null;
+  const pem = override ?? process.env.NEXT_PUBLIC_JWT_PUBLIC_KEY ?? BUNDLED_JWT_PUBLIC_KEY;
   if (!pem) return null;
   return pem.replace(/\\n/g, "\n");
 }

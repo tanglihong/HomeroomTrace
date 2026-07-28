@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { describe, expect, it } from "vitest";
 import { SignJWT, importPKCS8 } from "jose";
-import { validateLicense } from "@/lib/auth/license-validator";
+import { validateLicense, resolvePublicKeyPem } from "@/lib/auth/license-validator";
 
 const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
   modulusLength: 2048,
@@ -44,5 +44,17 @@ describe("validateLicense", () => {
   it("returns null when token malformed", async () => {
     const result = await validateLicense("not-a-jwt", "device-abc", publicKey);
     expect(result).toBeNull();
+  });
+
+  it("resolves bundled public key when env is unset", () => {
+    const previous = process.env.NEXT_PUBLIC_JWT_PUBLIC_KEY;
+    delete process.env.NEXT_PUBLIC_JWT_PUBLIC_KEY;
+    try {
+      expect(resolvePublicKeyPem()).toContain("BEGIN PUBLIC KEY");
+    } finally {
+      if (previous !== undefined) {
+        process.env.NEXT_PUBLIC_JWT_PUBLIC_KEY = previous;
+      }
+    }
   });
 });

@@ -1,5 +1,9 @@
+import fs from "node:fs";
+import path from "node:path";
 import type { NextConfig } from "next";
 import withPWAInit from "@ducanh2912/next-pwa";
+
+const jwtPublicKey = fs.readFileSync(path.join(process.cwd(), "cloudbase/keys/public.pem"), "utf8").trim();
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -36,6 +40,9 @@ const nextConfig: NextConfig = {
   distDir: 'out',
   images: {
     unoptimized: true,
+  },
+  env: {
+    NEXT_PUBLIC_JWT_PUBLIC_KEY: jwtPublicKey,
   },
 };
 

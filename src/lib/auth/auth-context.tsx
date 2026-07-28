@@ -4,7 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { login as apiLogin } from "@/lib/auth/auth-api";
 import { getOrCreateDeviceId } from "@/lib/auth/device-id";
 import { clearLicense, getLicense, getLicenseMeta, saveLicense } from "@/lib/auth/license-store";
-import { resolvePublicKeyPem, validateLicense } from "@/lib/auth/license-validator";
+import { validateLicense } from "@/lib/auth/license-validator";
 
 export type AuthStatus = "loading" | "authorized" | "unauthorized";
 
@@ -33,11 +33,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const deviceId = await getOrCreateDeviceId();
 
       if (!license) {
-        if (!cancelled) setStatus("unauthorized");
-        return;
-      }
-
-      if (!resolvePublicKeyPem()) {
         if (!cancelled) setStatus("unauthorized");
         return;
       }

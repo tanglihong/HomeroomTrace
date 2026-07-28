@@ -1,0 +1,13 @@
+/**
+ * RSA public key for offline License JWT verification.
+ * Keep in sync with cloudbase/keys/public.pem (safe to commit — public key only).
+ */
+export const BUNDLED_JWT_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqM91fCjUhqGGGbWnG3Kt
+ZSkppY/lNf4jQMZ65GOUwJiypB06qnISGfV0nwqAxYI1ZKSkgqQK/qVDahwouG5S
+qQuDiAVbVvfhXhg7hIMVSpcnmf3wEbvWCNU/tnnGY3hNvuO0IJCR3hSXY1Vvl8OR
+sJP9DPqPYIWL8EV8Jdj2f4gj2yRjedwWoYJCtHBcRB6PmcYhjMrOGLKPTIcw5ZcJ
+3c7F+0xIGQ/wI87qjblM2qYcYvkthy0SI3Q0OF+g1R8q5fbcVNwduOw5z+C48UsA
+TV1nDnoWOOtm+WdBj/IBVDRAR9glR/0skV4BBxjw1H3RwrmE6FTmXxqlCUbW5l3v
+jwIDAQAB
+-----END PUBLIC KEY-----`;
