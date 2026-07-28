@@ -1,0 +1,36 @@
+name: Deploy to CloudBase
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          NEXT_PUBLIC_AUTH_API_BASE: ${{ secrets.NEXT_PUBLIC_AUTH_API_BASE }}
+          NEXT_PUBLIC_TCB_ENV_ID: ${{ secrets.TCB_ENV_ID }}
+        run: npm run build
+
+      - name: Install CloudBase CLI
+        run: npm install -g @cloudbase/cli
+
+      - name: Login CloudBase
+        run: tcb login --apiKeyId ${{ secrets.TCB_SECRET_ID }} --apiKey ${{ secrets.TCB_SECRET_KEY }}
+
+      - name: Deploy static site
+        run: tcb hosting deploy ./out / -e ${{ secrets.TCB_ENV_ID }}
