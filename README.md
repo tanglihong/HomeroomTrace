@@ -30,9 +30,9 @@ npm run dev
 
 | 变量 | 说明 |
 |------|------|
-| `NEXT_PUBLIC_TCB_ENV_ID` | CloudBase 环境 ID |
-| `NEXT_PUBLIC_AUTH_API_BASE` | 云函数 HTTP 访问根 URL |
-| `NEXT_PUBLIC_JWT_PUBLIC_KEY` | License 验签公钥（`cloudbase/keys/public.pem`） |
+| `NEXT_PUBLIC_TCB_ENV_ID` | CloudBase 环境 ID（可选，默认见 `cloudbase/client-config.json`） |
+| `NEXT_PUBLIC_AUTH_API_BASE` | 云函数 HTTP 访问根 URL（可选，默认见 `cloudbase/client-config.json`） |
+| `NEXT_PUBLIC_JWT_PUBLIC_KEY` | License 验签公钥（构建时自动从 `cloudbase/keys/public.pem` 注入） |
 
 部署云函数与管理员操作见 [`cloudbase/README.md`](cloudbase/README.md)。
 

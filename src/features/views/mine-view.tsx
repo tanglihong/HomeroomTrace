@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import type { ClassGroupDTO } from "@/domain/use-cases/repositories";
 import { buildChecklist } from "@/domain/checklist/competency-checklist";
@@ -20,7 +21,11 @@ import { useAppContainer } from "@/lib/app-container";
 import { needsBackupReminder, setLastBackupAt } from "@/lib/app-preferences";
 import { useDataStore } from "@/lib/data-store";
 import { useSavingAction } from "@/lib/hooks";
-import { getMediaStorageStats, type MediaStorageStats } from "@/lib/storage-stats";
+import {
+  getMediaStorageStats,
+  subscribeMediaStorageChanged,
+  type MediaStorageStats,
+} from "@/lib/storage-stats";
 
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
@@ -29,6 +34,7 @@ function formatBytes(bytes: number): string {
 }
 
 export function MineView() {
+  const pathname = usePathname();
   const { username, displayName, logout } = useAuth();
   const container = useAppContainer();
   const { currentClassId, setCurrentClassId } = container;
@@ -67,10 +73,20 @@ export function MineView() {
     void reloadClass();
   }, [loaded, reloadClass]);
 
-  useEffect(() => {
+  const refreshStorageStats = useCallback(() => {
     void getMediaStorageStats().then(setStorageStats);
-    setShowBackupReminder(needsBackupReminder());
   }, []);
+
+  useEffect(() => {
+    refreshStorageStats();
+    setShowBackupReminder(needsBackupReminder());
+  }, [refreshStorageStats]);
+
+  useEffect(() => {
+    if (pathname === "/mine") refreshStorageStats();
+  }, [pathname, refreshStorageStats]);
+
+  useEffect(() => subscribeMediaStorageChanged(refreshStorageStats), [refreshStorageStats]);
 
   const saveClass = async () => {
     if (!clazz) return;

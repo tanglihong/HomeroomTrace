@@ -1,5 +1,6 @@
 import type { MediaStore } from "@/domain/use-cases/repositories";
 import { getDatabase } from "@/data/db/schema";
+import { notifyMediaStorageChanged } from "@/lib/storage-stats";
 import { v4 as uuidv4 } from "uuid";
 
 /** IndexedDB 媒体文件存储。 */
@@ -12,6 +13,7 @@ export class IndexedDBMediaStore implements MediaStore {
       blob: data,
       mimeType: data.type || "application/octet-stream",
     });
+    notifyMediaStorageChanged();
     return relativePath;
   }
 
@@ -30,5 +32,6 @@ export class IndexedDBMediaStore implements MediaStore {
 
   async delete(relativePath: string): Promise<void> {
     await getDatabase().mediaFiles.delete(relativePath);
+    notifyMediaStorageChanged();
   }
 }

@@ -106,11 +106,13 @@ curl -X POST "https://YOUR_BASE/auth-admin" \
 
 ## 7. PWA 客户端环境变量
 
-复制项目根目录 `.env.local.example` 为 `.env.local` 并填写：
+**默认配置已写入 `cloudbase/client-config.json`**（与 JWT 公钥一样在 `next build` 时注入），本地开发与 CI/CloudBase 部署无需再配 `.env.local` 即可登录。
 
-- `NEXT_PUBLIC_TCB_ENV_ID` — `homeroom-trace-d6govo66p082c0347`
-- `NEXT_PUBLIC_AUTH_API_BASE` — 云函数 HTTP 根 URL
-- `NEXT_PUBLIC_JWT_PUBLIC_KEY` — `cloudbase/keys/public.pem` 全文（可单行，`\n` 转义）
+如需覆盖（多环境部署），复制 `.env.local.example` 为 `.env.local` 并填写：
+
+- `NEXT_PUBLIC_TCB_ENV_ID` — 默认见 `client-config.json`
+- `NEXT_PUBLIC_AUTH_API_BASE` — 默认见 `client-config.json`（HTTP 根 URL，见上文 §3.3）
+- `NEXT_PUBLIC_JWT_PUBLIC_KEY` — 已由 `next.config.ts` 从 `cloudbase/keys/public.pem` 注入，一般无需填写
 
 然后：
 
@@ -133,9 +135,11 @@ Push 到 `main` 后，`.github/workflows/deploy-cloudbase.yml` 会自动构建�
 | `TCB_SECRET_ID` | 腾讯云 [API 密钥 SecretId](https://console.cloud.tencent.com/cam/capi)（以 `AKID` 开头） |
 | `TCB_SECRET_KEY` | 对应的 SecretKey |
 | `TCB_ENV_ID` | `homeroom-trace-d6govo66p082c0347` |
-| `NEXT_PUBLIC_AUTH_API_BASE` | 云函数 HTTP 根 URL |
+| `NEXT_PUBLIC_AUTH_API_BASE` | （可选）覆盖 `cloudbase/client-config.json` 中的 HTTP 根 URL |
 
 注意：`TCB_SECRET_ID` 填 SecretId，不要与 SecretKey 或环境 ID 混淆。子账号密钥需有 CloudBase 权限（如 `QCloudTCBFullAccess`）。
+
+若未配置 `NEXT_PUBLIC_AUTH_API_BASE` Secret，构建会使用仓库内 `cloudbase/client-config.json` 的默认值。
 
 ## 常见问题
 
