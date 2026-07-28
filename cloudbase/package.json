@@ -8,6 +8,6 @@
     "deploy": "npm run deploy:login && npm run deploy:admin"
   },
   "devDependencies": {
-    "@cloudbase/cli": "^2.7.9"
+    "@cloudbase/cli": "^2.12.10"
   }
 }

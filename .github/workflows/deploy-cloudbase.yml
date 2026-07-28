@@ -34,14 +34,10 @@ jobs:
         run: test -f out/index.html
 
       - name: Install CloudBase CLI
-        run: npm install -g @cloudbase/cli@2.7.9
+        run: npm install -g @cloudbase/cli@2.12.10
 
       - name: Login CloudBase
         run: tcb login --apiKeyId "${{ secrets.TCB_SECRET_ID }}" --apiKey "${{ secrets.TCB_SECRET_KEY }}"
 
-      - name: Ensure static hosting is enabled
-        run: tcb hosting detail --envId "${{ secrets.TCB_ENV_ID }}" --yes
-        continue-on-error: true
-
       - name: Deploy static site
-        run: tcb hosting deploy ./out / --envId "${{ secrets.TCB_ENV_ID }}" --yes --verbose
+        run: tcb hosting deploy ./out / -e "${{ secrets.TCB_ENV_ID }}"
