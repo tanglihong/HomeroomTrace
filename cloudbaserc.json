@@ -1,0 +1,12 @@
+{
+  "$schema": "https://static.cloudbase.net/cli/cloudbaserc.schema.json",
+  "envId": "homeroom-trace-d6govo66p082c0347",
+  "app": {
+    "serviceName": "homeroom-trace",
+    "framework": "next",
+    "installCommand": "",
+    "buildCommand": "",
+    "outputDir": "out",
+    "deployPath": "/"
+  }
+}

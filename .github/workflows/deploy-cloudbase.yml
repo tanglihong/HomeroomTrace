@@ -56,10 +56,10 @@ jobs:
         run: test -f out/index.html
 
       - name: Install CloudBase CLI
-        run: npm install -g @cloudbase/cli@2.12.10
+        run: npm install -g @cloudbase/cli@3.6.4
 
       - name: Login CloudBase
-        run: tcb login --key --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
+        run: tcb login --apiKeyId "$TCB_SECRET_ID" --apiKey "$TCB_SECRET_KEY"
 
-      - name: Deploy static site
-        run: tcb hosting deploy ./out / -e "$TCB_ENV_ID"
+      - name: Deploy app version
+        run: tcb app deploy homeroom-trace --env-id "$TCB_ENV_ID" --force --yes

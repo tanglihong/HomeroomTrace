@@ -122,7 +122,9 @@ npm run build
 
 ## 8. GitHub Actions 自动部署
 
-Push 到 `main` 后，`.github/workflows/deploy-cloudbase.yml` 会自动构建并部署 `out/` 到静态托管。
+Push 到 `main` 后，`.github/workflows/deploy-cloudbase.yml` 会自动构建并通过 **`tcb app deploy`** 发布到 CloudBase 应用 `homeroom-trace`（会生成新的部署版本记录）。
+
+> 注意：不要使用 `tcb hosting deploy`，它只上传静态文件，不会更新「应用详情 → 部署版本」列表。
 
 在 GitHub 仓库 **Settings → Secrets and variables → Actions** 配置：
 
