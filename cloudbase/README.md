@@ -120,6 +120,21 @@ npm run dev
 npm run build
 ```
 
+## 8. GitHub Actions 自动部署
+
+Push 到 `main` 后，`.github/workflows/deploy-cloudbase.yml` 会自动构建并部署 `out/` 到静态托管。
+
+在 GitHub 仓库 **Settings → Secrets and variables → Actions** 配置：
+
+| Secret | 值 |
+|--------|-----|
+| `TCB_SECRET_ID` | 腾讯云 [API 密钥 SecretId](https://console.cloud.tencent.com/cam/capi)（以 `AKID` 开头） |
+| `TCB_SECRET_KEY` | 对应的 SecretKey |
+| `TCB_ENV_ID` | `homeroom-trace-d6govo66p082c0347` |
+| `NEXT_PUBLIC_AUTH_API_BASE` | 云函数 HTTP 根 URL |
+
+注意：`TCB_SECRET_ID` 填 SecretId，不要与 SecretKey 或环境 ID 混淆。子账号密钥需有 CloudBase 权限（如 `QCloudTCBFullAccess`）。
+
 ## 常见问题
 
 **Q：找不到「云函数 → 环境变量」？**  
