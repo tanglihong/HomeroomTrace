@@ -67,3 +67,33 @@ export async function login(username: string, password: string, deviceId: string
     displayName: data.displayName,
   };
 }
+
+export type SessionCheckResult = "valid" | "revoked" | "unavailable";
+
+/** Online session check: account still exists, enabled, and device still bound. */
+export async function checkSession(license: string): Promise<SessionCheckResult> {
+  const base = getAuthApiBase();
+  const url = `${base}/auth-login`;
+
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "validateSession", license }),
+    });
+  } catch {
+    return "unavailable";
+  }
+
+  let data: { ok?: boolean; error?: string } = {};
+  try {
+    data = (await res.json()) as typeof data;
+  } catch {
+    // ignore parse errors
+  }
+
+  if (res.status === 403 || res.status === 404) return "revoked";
+  if (res.ok && data.ok) return "valid";
+  return "unavailable";
+}

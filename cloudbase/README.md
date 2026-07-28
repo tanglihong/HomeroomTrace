@@ -50,6 +50,8 @@ HTTP 根 URL（已创建）：
 
 `https://homeroom-trace-d6govo66p082c0347-1302493111.ap-shanghai.app.tcloudbase.com`
 
+> **会话校验**：客户端联网时会调用 `auth-login` 的 `validateSession` 检查账号是否仍存在/已禁用/已解绑。更新 `auth-login` 后需重新部署该函数（`npm run deploy:login`），并确保环境变量含 `JWT_PUBLIC_KEY`（`npm run prepare-env` 会自动注入）。
+
 ## 4. 环境变量
 
 由 `npm run prepare-env` 自动从 `keys/private.pem` 和 `secrets.local.json` 注入到 `cloudbaserc.deploy.json`，随部署一并上传。

@@ -32,6 +32,8 @@ if (!secrets.ADMIN_PASSWORD) {
 fs.writeFileSync(secretsPath, JSON.stringify(secrets, null, 2) + "\n");
 
 const jwtPrivateKey = privatePem.replace(/\r?\n/g, "\\n");
+const publicPem = fs.readFileSync(path.join(root, "keys/public.pem"), "utf8");
+const jwtPublicKey = publicPem.replace(/\r?\n/g, "\\n");
 const rc = JSON.parse(fs.readFileSync(rcPath, "utf8"));
 const deployPath = path.join(root, "cloudbaserc.deploy.json");
 
@@ -39,6 +41,7 @@ for (const fn of rc.functions) {
   if (fn.name === "auth-login") {
     fn.envVariables = {
       JWT_PRIVATE_KEY: jwtPrivateKey,
+      JWT_PUBLIC_KEY: jwtPublicKey,
       ADMIN_SECRET: secrets.ADMIN_SECRET,
       LICENSE_EXPIRY_YEARS: "10",
     };

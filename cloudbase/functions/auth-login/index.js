@@ -53,8 +53,62 @@ function asRows(result) {
   return [];
 }
 
+/** Loads RSA public key PEM from env (supports literal \\n or real newlines). */
+function loadPublicKey() {
+  const raw = process.env.JWT_PUBLIC_KEY;
+  if (!raw) throw new Error("JWT_PUBLIC_KEY not configured");
+  if (raw.includes("BEGIN PUBLIC KEY") && raw.includes("\n")) return raw.trim();
+  return raw.replace(/\\n/g, "\n").trim();
+}
+
+/** Verifies license is still valid on server (account exists, enabled, device bound). */
+async function handleValidateSession(body, corsHeaders, event) {
+  const license = String(body.license || "").trim();
+  if (!license) {
+    return { statusCode: 400, headers: corsHeaders, body: JSON.stringify({ error: "缺少 license" }) };
+  }
+
+  let payload;
+  try {
+    payload = jwt.verify(license, loadPublicKey(), { algorithms: ["RS256"] });
+  } catch {
+    return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: "License 无效或已过期" }) };
+  }
+
+  const accountId = String(payload.sub || "");
+  const deviceId = String(payload.deviceId || "");
+  if (!accountId || !deviceId) {
+    return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: "License 无效" }) };
+  }
+
+  const app = initApp(event);
+  const db = app.database();
+  const rows = asRows(await db.collection("accounts").doc(accountId).get());
+  const account = rows[0];
+
+  if (!account) {
+    return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: "账号不存在或已删除" }) };
+  }
+  if (account.disabled) {
+    return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: "账号已禁用" }) };
+  }
+  if (account.deviceId !== deviceId) {
+    return { statusCode: 403, headers: corsHeaders, body: JSON.stringify({ error: "设备绑定已失效，请重新登录" }) };
+  }
+
+  return {
+    statusCode: 200,
+    headers: corsHeaders,
+    body: JSON.stringify({
+      ok: true,
+      username: account.username,
+      displayName: account.displayName || account.username,
+    }),
+  };
+}
+
 /**
- * POST body: { username, password, deviceId }
+ * POST body: { username, password, deviceId } | { action: "validateSession", license }
  * Returns { license, username, displayName } or error status.
  */
 exports.main = async (event) => {
@@ -74,6 +128,10 @@ exports.main = async (event) => {
 
   try {
     const body = parseBody(event);
+    if (body.action === "validateSession") {
+      return handleValidateSession(body, corsHeaders, event);
+    }
+
     const username = String(body.username || "").trim();
     const password = String(body.password || "");
     const deviceId = String(body.deviceId || "").trim();

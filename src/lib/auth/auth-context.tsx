@@ -5,6 +5,7 @@ import { login as apiLogin } from "@/lib/auth/auth-api";
 import { getOrCreateDeviceId } from "@/lib/auth/device-id";
 import { clearLicense, getLicense, getLicenseMeta, saveLicense } from "@/lib/auth/license-store";
 import { validateLicense } from "@/lib/auth/license-validator";
+import { startSessionGuard, verifyServerSession } from "@/lib/auth/session-guard";
 
 export type AuthStatus = "loading" | "authorized" | "unauthorized";
 
@@ -41,6 +42,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (cancelled) return;
 
       if (payload) {
+        const serverOk = await verifyServerSession(license);
+        if (cancelled) return;
+        if (!serverOk) {
+          await clearLicense();
+          setUsername(null);
+          setDisplayName(null);
+          setStatus("unauthorized");
+          return;
+        }
         setUsername(meta?.username ?? payload.username);
         setDisplayName(meta?.displayName ?? meta?.username ?? payload.username);
         setStatus("authorized");
@@ -76,6 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setDisplayName(null);
     setStatus("unauthorized");
   }, []);
+
+  useEffect(() => {
+    if (status !== "authorized") return;
+    return startSessionGuard(logout);
+  }, [status, logout]);
 
   const value = useMemo(
     () => ({ status, username, displayName, login, logout }),
